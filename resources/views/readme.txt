@@ -1,0 +1,1 @@
+now for sales function make a blade page where i have select date from & to option. Output will show sales & external sale
