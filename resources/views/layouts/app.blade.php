@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>Daisho Gold</title>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -16,6 +16,9 @@
         .collapse .nav-link:hover {
             background-color: #f8f9fa !important;
             color: #0d6efd !important;
+        }
+        body {
+            color: #d32f2f !important;
         }
     </style>
 

@@ -64,8 +64,9 @@
     <main>
         <div class="login-card">
             <div class="text-center mb-4">
-                <div class="brand-logo">
-                    <a href="{{ url ('/')}}" style="text-decoration: none;"><i class="bi bi-box-seam"></i> {{ config('app.name', 'Laravel') }}</a>
+                <div class="brand-logo text-center mb-3">
+                    <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 60px;">
+                    <h1 class="text-3xl font-bold text-center text-danger">Daisho Gold</h1>
                 </div>
                 <small class="text-muted">Please login to continue</small>
             </div>
@@ -94,7 +95,7 @@
                 </div>
 
                 <div class="d-grid mb-3">
-                    <button type="submit" class="btn btn-primary">Login <i class="bi bi-box-arrow-in-right ms-1"></i></button>
+                    <button type="submit" class="btn btn-danger">Login <i class="bi bi-box-arrow-in-right ms-1"></i></button>
                 </div>
 
                 {{-- <div class="text-center">

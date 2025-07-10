@@ -2,8 +2,8 @@
     <div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end shadow-sm"
         style="width: 250px; height: 100vh; max-height: 100vh; overflow-y: auto; position: fixed; top: 0; left: 0; z-index: 1030;">
         <a href="{{ url('/') }}" class="d-flex align-items-center mb-4 text-decoration-none">
-            <i class="bi bi-shop me-2 fs-4 text-primary"></i>
-            <span class="fs-5 fw-semibold">{{ config('app.name', 'POS') }}</span>
+            <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 32px; margin-right: 8px;">
+            <span class="fs-5 fw-semibold text-danger">Daisho Gold</span>
         </a>
         <hr>
 

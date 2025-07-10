@@ -3,7 +3,7 @@
 @section('pos')
     <div class="container py-4">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-danger text-white">
                 <h4 class="mb-0">Create Manual Sale</h4>
             </div>
             <div class="card-body">
@@ -91,7 +91,7 @@
     <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content shadow">
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="customerModalLabel">Select Customer</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>

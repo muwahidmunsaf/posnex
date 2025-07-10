@@ -4,7 +4,7 @@
     <div class="container mt-5">
         {{-- Removed backup/restore buttons from dashboard --}}
         <div class="mb-5">
-            <h2 class="fw-bold text-dark">📊 {{ config('app.name', 'Laravel') }} Dashboard</h2>
+            <h2 class="fw-bold text-dark">📊 Daisho Gold Dashboard</h2>
             <p class="text-muted">Welcome back, <strong>{{ auth()->user()->name }}</strong>! Here’s a quick overview of your
                 company’s performance.</p>
         </div>
@@ -25,13 +25,13 @@
 
             {{-- Total Purchases --}}
             <div class="col-md-3">
-                <div class="card shadow-sm border-start border-primary border-4 h-100">
+                <div class="card shadow-sm border-start border-danger border-4 h-100">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
-                            <i class="bi bi-bag-check fs-4 text-primary me-2"></i>
+                            <i class="bi bi-bag-check fs-4 text-danger me-2"></i>
                             <h6 class="text-muted mb-0">Total Purchases</h6>
                         </div>
-                        <h4 class="fw-bold text-primary">Rs. {{ number_format($totalPurchases, 2) }}</h4>
+                        <h4 class="fw-bold text-danger">Rs. {{ number_format($totalPurchases, 2) }}</h4>
                     </div>
                 </div>
             </div>

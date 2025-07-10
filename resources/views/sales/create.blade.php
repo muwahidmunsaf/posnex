@@ -3,7 +3,7 @@
 @section('pos')
     <div class="container py-4">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-danger text-white">
                 <h4 class="mb-0">Create New Sale</h4>
             </div>
 
@@ -57,7 +57,7 @@
                             <div class="card border-0 shadow-sm mb-3">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                     <strong>Select Items & Quantities</strong>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                         data-bs-target="#itemModal">
                                         Add Item
                                     </button>
@@ -125,7 +125,7 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between mt-4">
-                                        <button type="submit" class="btn btn-primary w-50">Submit Sale</button>
+                                        <button type="submit" class="btn btn-danger w-50">Submit Sale</button>
                                         <a href="{{ route('sales.index') }}"
                                             class="btn btn-outline-secondary w-45 ms-2">Cancel</a>
                                     </div>

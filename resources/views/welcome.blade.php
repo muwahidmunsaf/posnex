@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>Daisho Gold</title>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta
@@ -29,13 +29,13 @@
   <!-- Hero Section -->
   <div class="row align-items-center">
     <div class="col-md-6">
-      <h1 class="display-4 fw-bold mb-3">Welcome to <span class="text-primary"> {{ config('app.name', 'Laravel') }}</span></h1>
+      <h1 class="display-4 fw-bold mb-3">Welcome to <span class="text-danger"> Daisho Gold</span></h1>
       <p class="lead mb-4">
         Streamline your sales, manage inventory, and grow your business with our powerful Point of Sale web application.
       </p>
       @guest
-        <a href="{{ route('login') }}" class="btn btn-primary btn-lg me-3">Login</a>
-        <a href="{{ url('#') }}" class="fs-5 text-primary text-decoration-underline">Book Now</a>
+        <a href="{{ route('login') }}" class="btn btn-danger btn-lg me-3">Login</a>
+        <a href="{{ url('#') }}" class="fs-5 text-danger text-decoration-underline">Book Now</a>
       @else
         <a href="{{ route('dashboard') }}" class="btn btn-success btn-lg">Go to Dashboard</a>
       @endguest
@@ -52,7 +52,7 @@
       <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-body">
-            <i class="bi bi-cart-check-fill fs-1 text-primary mb-3"></i>
+            <i class="bi bi-cart-check-fill fs-1 text-danger mb-3"></i>
             <h5 class="card-title">Effortless Sales</h5>
             <p class="card-text">Quickly process transactions with an intuitive sales interface optimized for speed and accuracy.</p>
           </div>
@@ -61,7 +61,7 @@
       <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-body">
-            <i class="bi bi-box-seam fs-1 text-primary mb-3"></i>
+            <i class="bi bi-box-seam fs-1 text-danger mb-3"></i>
             <h5 class="card-title">Inventory Management</h5>
             <p class="card-text">Track stock levels, get low-stock alerts, and manage suppliers with ease.</p>
           </div>
@@ -70,7 +70,7 @@
       <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100">
           <div class="card-body">
-            <i class="bi bi-graph-up fs-1 text-primary mb-3"></i>
+            <i class="bi bi-graph-up fs-1 text-danger mb-3"></i>
             <h5 class="card-title">Reports & Analytics</h5>
             <p class="card-text">Gain insights into sales trends, customer behavior, and business performance.</p>
           </div>
@@ -83,7 +83,7 @@
   <section class="text-center mt-5 mb-5">
     <h3 class="mb-3">Ready to transform your business?</h3>
     @guest
-      <a href="#" class="btn btn-lg btn-primary">Get Started Now</a>
+      <a href="#" class="btn btn-lg btn-danger">Get Started Now</a>
     @else
       <a href="{{ route('dashboard') }}" class="btn btn-lg btn-success">Go to Dashboard</a>
     @endguest
@@ -106,7 +106,7 @@
           </p>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-          <a href="https://devzyte.com" target="_blank" rel="noopener" class="btn btn-outline-primary">Visit DevZyte</a>
+          <a href="https://devzyte.com" target="_blank" rel="noopener" class="btn btn-outline-danger">Visit DevZyte</a>
         </div>
       </div>
     </section>

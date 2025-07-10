@@ -1,7 +1,8 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{{ url('/') }}">
-            {{ config('app.name', 'Laravel') }}
+            <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 40px;">
+            <span class="brand-text">Daisho Gold</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
@@ -20,7 +21,7 @@
             <ul class="navbar-nav ms-auto">
                 @guest
                     <li class="nav-item">
-                        <a class="btn btn-outline-primary" href="{{ route('login') }}">Login</a>
+                        <a class="btn btn-outline-danger" href="{{ route('login') }}">Login</a>
                     </li>
                 @else
                     @php
@@ -29,7 +30,7 @@
 
                     @if ($user && $user->role !== 'employee')
                         <li class="nav-item">
-                            <a class="btn mt-2 me-3 btn-primary" href="{{ url('/dashboard') }}">Dashboard</a>
+                            <a class="btn mt-2 me-3 btn-danger" href="{{ url('/dashboard') }}">Dashboard</a>
                         </li>
                     @endif
 
