@@ -15,13 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'admin@mail.com',
-            'password' => bcrypt('password'), // password is 'password'
-            'company_id' => 1,
-            'status' => 'active',
-            'role' => 'superadmin',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@mail.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => bcrypt('password'),
+                'company_id' => 1,
+                'status' => 'active',
+                'role' => 'superadmin',
+            ]
+        );
     }
 }
