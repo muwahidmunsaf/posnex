@@ -29,4 +29,4 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 # Expose port 8080 and start php server
 EXPOSE 8080
 # Run migrations before starting the server
-CMD php artisan migrate --force && php artisan db:seed && php -S 0.0.0.0:8080 -t public 
+CMD php artisan migrate --force ; php artisan db:seed --force ; php -S 0.0.0.0:8080 -t public 
