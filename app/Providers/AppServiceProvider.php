@@ -21,9 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            \URL::forceScheme('https');
+        }
         $this->app->booted(function () {
-        $schedule = app(Schedule::class);
-        $schedule->command(InactivateDueUsers::class)->daily();
-    });
+            $schedule = app(Schedule::class);
+            $schedule->command(InactivateDueUsers::class)->daily();
+        });
     }
 }
