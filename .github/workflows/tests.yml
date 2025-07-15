@@ -27,6 +27,12 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
+      - name: Copy .env.example to .env
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
       - name: Run tests with coverage
         run: |
           vendor/bin/pest --coverage-clover=coverage.xml
