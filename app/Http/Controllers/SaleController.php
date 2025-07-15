@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Models\InventorySale;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Session;
 
 
 class SaleController extends Controller
@@ -18,69 +20,89 @@ class SaleController extends Controller
     {
         $user = Auth::user();
         $company = $user->company;
-
-        // Fetch only active inventories with stock > 0
-        $inventories = Inventory::where('company_id', $company->id)
-            ->where('status', 'active')
-            ->where('unit', '>', 0)
-            ->get();
-        // Only fetch wholesale customers
-        $customers = Customer::where('company_id', $company->id)
-            ->where('type', 'wholesale')
-            ->get();
-        return view('sales.create', compact('inventories', 'company', 'customers'));
+        $distributors = \App\Models\Distributor::where('company_id', $company->id)->get();
+        $inventories = \App\Models\Inventory::where('company_id', $company->id)->get();
+        $shopkeepers = \App\Models\Shopkeeper::where('distributor_id', $distributors->pluck('id'))->get();
+        $customers = \App\Models\Customer::where('company_id', $company->id)->get();
+        // Generate idempotency token
+        $token = Str::uuid()->toString();
+        Session::put('sale_idempotency_token', $token);
+        return view('sales.create', compact('distributors', 'inventories', 'shopkeepers', 'customers', 'token'));
     }
 
 
     public function store(Request $request)
     {
+        // Idempotency token check
+        $token = $request->input('idempotency_token');
+        $sessionToken = Session::get('sale_idempotency_token');
+        if (!$token || $token !== $sessionToken) {
+            return back()->withErrors(['error' => 'Invalid or missing submission token. Please try again.'])->withInput();
+        }
+        // Consume token
+        Session::forget('sale_idempotency_token');
+
         $user = Auth::user();
         $company = $user->company;
 
-        // Accept either wholesale_customer_id or retail_customer_name
-        $request->validate([
-            'items' => 'required|array',
+        $saleType = $request->input('sale_type');
+        // Validation based on sale type
+        $hasItems = $request->has('items') && is_array($request->items) && count($request->items) > 0;
+        $hasManual = $request->has('manual_products') && is_array($request->manual_products) && count($request->manual_products) > 0;
+        if (!$hasItems && !$hasManual) {
+            return back()->withErrors(['You must add at least one product (inventory or manual).'])->withInput();
+        }
+        $rules = [
+            'items' => 'array',
             'items.*.inventory_id' => 'required|exists:inventory,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'sale_type' => 'required_if:company.type,both|in:retail,wholesale',
             'payment_method' => 'required|in:cash,card,online',
             'discount' => 'nullable|numeric|min:0',
-            // Custom validation: one of the two must be present, not both
-            'wholesale_customer_id' => 'nullable|exists:customers,id',
-            'retail_customer_name' => 'nullable|string|max:255',
-        ]);
-        if (!$request->wholesale_customer_id && !$request->retail_customer_name) {
-            return back()->withErrors(['Please select a wholesale customer or enter a retail customer name.'])->withInput();
+            'manual_products' => 'array',
+            'manual_products.*.name' => 'required_with:manual_products|string|max:255',
+            'manual_products.*.quantity' => 'required_with:manual_products|integer|min:1',
+            'manual_products.*.selling_price' => 'required_with:manual_products|numeric|min:0',
+            'manual_products.*.purchase_price' => 'required_with:manual_products|numeric|min:0',
+            'manual_products.*.buy_from' => 'nullable|string|max:255',
+        ];
+        if ($saleType === 'distributor') {
+            $rules['distributor_id'] = 'required|exists:distributors,id';
+            $rules['shopkeeper_id'] = 'required|exists:shopkeepers,id';
+        } elseif ($saleType === 'wholesale') {
+            $rules['wholesale_customer_id'] = 'required|exists:customers,id';
+        } elseif ($saleType === 'retail') {
+            $rules['retail_customer_name'] = 'required|string|max:255';
         }
-        if ($request->wholesale_customer_id && $request->retail_customer_name) {
-            return back()->withErrors(['Please fill only one: either select a wholesale customer or enter a retail customer name, not both.'])->withInput();
-        }
+        $request->validate($rules);
 
         $discount = $request->discount ?? 0;
-
         $subtotal = 0;
         $inventorySales = [];
 
-        foreach ($request->items as $item) {
+        $items = $request->items ?? [];
+        $manualProducts = $request->manual_products ?? [];
+
+        foreach ($items as $item) {
             $inventory = Inventory::findOrFail($item['inventory_id']);
-
-            $amount = $request->sale_type === 'retail' ? $inventory->retail_amount : $inventory->wholesale_amount;
+            $amount = ($saleType === 'distributor' || $request->shopkeeper_id) ? $inventory->wholesale_amount : (($saleType === 'retail') ? $inventory->retail_amount : $inventory->wholesale_amount);
             $totalAmount = $amount * $item['quantity'];
-
             $inventorySales[] = [
                 'inventory' => $inventory,
                 'item_id' => $inventory->id,
                 'quantity' => $item['quantity'],
-                'sale_type' => $request->sale_type,
+                'sale_type' => $saleType,
                 'amount' => $amount,
                 'total_amount' => $totalAmount
             ];
-
             $subtotal += $totalAmount;
         }
 
-        $subtotalAfterDiscount = $subtotal - $discount;
+        // Add manual products to subtotal (for invoice, but not inventory sales)
+        foreach ($manualProducts as $mp) {
+            $subtotal += $mp['selling_price'] * $mp['quantity'];
+        }
 
+        $subtotalAfterDiscount = $subtotal - $discount;
         $taxField = 'tax' . ucfirst($request->payment_method); // taxCash, taxCard, taxOnline
         $tax_percentage = $company->$taxField ?? 0;
         $tax_amount = ($tax_percentage / 100) * $subtotalAfterDiscount;
@@ -89,11 +111,8 @@ class SaleController extends Controller
         // Generate custom sale_code
         $prefix = strtoupper(substr($company->name, 0, 1));
         $companyIdPadded = str_pad($company->id, 3, '0', STR_PAD_LEFT);
-
-        // Count existing sales for this company
         $saleCount = Sale::where('company_id', $company->id)->count() + 1;
         $saleNumber = str_pad($saleCount, 5, '0', STR_PAD_LEFT);
-
         $saleCode = "{$prefix}{$companyIdPadded}-{$saleNumber}";
 
         $saleData = [
@@ -106,16 +125,24 @@ class SaleController extends Controller
             'tax_amount' => $tax_amount,
             'total_amount' => $total_amount,
             'company_id' => $company->id,
-            'sale_type' => $request->sale_type,
+            'sale_type' => $saleType,
         ];
-        if ($request->wholesale_customer_id) {
+        if ($saleType === 'distributor') {
+            $saleData['distributor_id'] = $request->distributor_id;
+            $saleData['shopkeeper_id'] = $request->shopkeeper_id;
+            $saleData['customer_id'] = null;
+            $saleData['customer_name'] = null;
+        } elseif ($saleType === 'wholesale') {
             $saleData['customer_id'] = $request->wholesale_customer_id;
             $saleData['customer_name'] = null;
-        } else {
+            $saleData['distributor_id'] = null;
+            $saleData['shopkeeper_id'] = null;
+        } elseif ($saleType === 'retail') {
             $saleData['customer_id'] = null;
             $saleData['customer_name'] = $request->retail_customer_name;
+            $saleData['distributor_id'] = null;
+            $saleData['shopkeeper_id'] = null;
         }
-        // Save amount_received and change_return if present
         if ($request->has('amount_received')) {
             $saleData['amount_received'] = $request->amount_received;
         }
@@ -143,11 +170,114 @@ class SaleController extends Controller
                 'total_amount' => $data['total_amount'],
                 'company_id' => $company->id,
             ]);
-
-            $data['inventory']->decrement('unit', $data['quantity']);
+            // Decrement inventory unit (ensure int)
+            $unit = (int) $data['inventory']->unit;
+            $quantity = (int) $data['quantity'];
+            $data['inventory']->unit = $unit; // ensure type
+            $data['inventory']->decrement('unit', $quantity);
         }
 
-        return view('sales.after-sale', ['saleId' => $sale->id]);
+        // --- Manual/External Sale Logic ---
+        foreach ($manualProducts as $mp) {
+            // Generate unique external purchase ID
+            $prefixE = strtoupper(substr($company->name, 0, 1)) . str_pad($company->id, 3, '0', STR_PAD_LEFT);
+            $lastEP = \App\Models\ExternalPurchase::where('purchaseE_id', 'like', "$prefixE-%")->latest('id')->first();
+            $serial = $lastEP ? intval(substr($lastEP->purchaseE_id, -5)) + 1 : 1;
+            $purchaseE_id = "$prefixE-" . str_pad($serial, 5, '0', STR_PAD_LEFT);
+
+            $purchase = \App\Models\ExternalPurchase::create([
+                'purchaseE_id' => $purchaseE_id,
+                'item_name' => $mp['name'],
+                'details' => null,
+                'purchase_amount' => $mp['purchase_price'],
+                'purchase_source' => $mp['buy_from'] ?? null,
+                'company_id' => $company->id,
+                'created_by' => $user->name,
+                'parent_sale_id' => $sale->id,
+            ]);
+            
+            // Debug log for purchase
+            \Log::info('Manual Product Purchase Created', [
+                'sale_id' => $sale->id,
+                'purchase' => $purchase,
+            ]);
+
+            // Generate unique external sale ID
+            $lastES = \App\Models\ExternalSale::where('saleE_id', 'like', "$prefixE-%")->latest('id')->first();
+            $serialSale = $lastES ? intval(substr($lastES->saleE_id, -5)) + 1 : 1;
+            $saleE_id = "$prefixE-" . str_pad($serialSale, 5, '0', STR_PAD_LEFT);
+
+            // Tax for manual product
+            $taxField = 'tax' . ucfirst($request->payment_method);
+            $taxPercentage = $company->$taxField ?? 0;
+            $taxAmount = ($taxPercentage / 100) * ($mp['selling_price'] * $mp['quantity']);
+            $totalAmount = ($mp['selling_price'] * $mp['quantity']) + $taxAmount;
+
+            // For external/manual sale, set customer_id if available, else null
+            $externalCustomerId = null;
+            if ($sale->customer_id) {
+                $externalCustomerId = $sale->customer_id;
+            } elseif ($saleType === 'retail') {
+                $externalCustomerId = null; // or set to a default retail customer if needed
+            }
+            
+            $externalSale = \App\Models\ExternalSale::create([
+                'saleE_id' => $saleE_id,
+                'purchaseE_id' => $purchaseE_id,
+                'sale_amount' => $mp['selling_price'] * $mp['quantity'],
+                'payment_method' => $request->payment_method,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $totalAmount,
+                'customer_id' => $externalCustomerId,
+                'company_id' => $company->id,
+                'created_by' => $user->name,
+                'parent_sale_id' => $sale->id,
+            ]);
+            // Debug log for external sale
+            \Log::info('Manual Product External Sale Created', [
+                'sale_id' => $sale->id,
+                'external_sale' => $externalSale,
+            ]);
+        }
+
+        // Refresh sale and fetch manual/external products for invoice
+        $sale->refresh();
+        $externalProducts = collect();
+        $externalSales = \App\Models\ExternalSale::where('parent_sale_id', $sale->id)->get();
+        foreach ($externalSales as $extSale) {
+            $purchase = \App\Models\ExternalPurchase::where('purchaseE_id', $extSale->purchaseE_id)
+                ->where('parent_sale_id', $sale->id)->first();
+            if ($purchase) {
+                $externalProducts->push([
+                    'name' => $purchase->item_name,
+                    'quantity' => 1,
+                    'rate' => $extSale->sale_amount,
+                    'amount' => $extSale->sale_amount,
+                ]);
+            }
+        }
+
+        // Show professional invoice for distributor/wholesale, current for retail
+        if ($saleType === 'retail') {
+            return view('sales.print', compact('sale', 'externalProducts'));
+        } else {
+            $distributor = $sale->distributor ?? null;
+            $shopkeeper = $sale->shopkeeper ?? null;
+            $customer = $sale->customer ?? null;
+            $company = $company;
+            $amountReceived = $sale->amount_received ?? 0;
+            if ($saleType === 'distributor' && $shopkeeper) {
+                $previousOutstanding = $shopkeeper->outstanding_balance - $sale->total_amount + $amountReceived;
+                $newOutstanding = $shopkeeper->outstanding_balance;
+            } elseif ($saleType === 'wholesale' && $customer) {
+                $previousOutstanding = $customer->outstanding_balance - $sale->total_amount + $amountReceived;
+                $newOutstanding = $customer->outstanding_balance;
+            } else {
+                $previousOutstanding = 0;
+                $newOutstanding = 0;
+            }
+            return view('sales.professional_invoice', compact('sale', 'distributor', 'shopkeeper', 'customer', 'company', 'previousOutstanding', 'newOutstanding', 'amountReceived', 'externalProducts'));
+        }
     }
 
 
@@ -174,12 +304,44 @@ class SaleController extends Controller
 
     public function print($id)
     {
-        $sale = Sale::with('inventorySales.item') // eager load items
+        $sale = Sale::with(['inventorySales.item', 'distributor', 'shopkeeper', 'customer']) // eager load all needed
             ->where('id', $id)
             ->where('company_id', Auth::user()->company_id)
             ->firstOrFail();
-
-        return view('sales.print', compact('sale'));
+        // Fetch manual/external products for this sale
+        $externalProducts = collect();
+        $externalSales = \App\Models\ExternalSale::where('parent_sale_id', $sale->id)->get();
+        foreach ($externalSales as $extSale) {
+            $purchase = \App\Models\ExternalPurchase::where('purchaseE_id', $extSale->purchaseE_id)->where('parent_sale_id', $sale->id)->first();
+            if ($purchase) {
+                $externalProducts->push([
+                    'name' => $purchase->item_name,
+                    'quantity' => 1, // Manual products are always single quantity per record
+                    'rate' => $extSale->sale_amount,
+                    'amount' => $extSale->sale_amount,
+                ]);
+            }
+        }
+        if ($sale->sale_type === 'retail') {
+            return view('sales.print', compact('sale', 'externalProducts'));
+        } else {
+            $distributor = $sale->distributor ?? null;
+            $shopkeeper = $sale->shopkeeper ?? null;
+            $customer = $sale->customer ?? null;
+            $company = $sale->company;
+            $amountReceived = $sale->amount_received ?? 0;
+            if ($sale->sale_type === 'distributor' && $shopkeeper) {
+                $previousOutstanding = $shopkeeper->outstanding_balance - $sale->total_amount + $amountReceived;
+                $newOutstanding = $shopkeeper->outstanding_balance;
+            } elseif ($sale->sale_type === 'wholesale' && $customer) {
+                $previousOutstanding = $customer->outstanding_balance - $sale->total_amount + $amountReceived;
+                $newOutstanding = $customer->outstanding_balance;
+            } else {
+                $previousOutstanding = 0;
+                $newOutstanding = 0;
+            }
+            return view('sales.professional_invoice', compact('sale', 'distributor', 'shopkeeper', 'customer', 'company', 'previousOutstanding', 'newOutstanding', 'amountReceived', 'externalProducts'));
+        }
     }
 
     public function returnForm($id)
@@ -229,5 +391,46 @@ class SaleController extends Controller
         } else {
             return back()->withErrors(['Please enter a return quantity for at least one item.']);
         }
+    }
+
+    public function edit($id)
+    {
+        $sale = Sale::with(['inventorySales', 'distributor', 'shopkeeper', 'customer', 'manualProducts'])->findOrFail($id);
+        $inventories = Inventory::where('company_id', $sale->company_id)->where('status', 'active')->get();
+        $customers = Customer::where('company_id', $sale->company_id)->get();
+        $distributors = \App\Models\Distributor::all();
+        $shopkeepers = \App\Models\Shopkeeper::all();
+        return view('sales.edit', compact('sale', 'inventories', 'customers', 'distributors', 'shopkeepers'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $sale = Sale::findOrFail($id);
+        // You can add validation and update logic here similar to store()
+        // For now, just allow updating payment_method, discount, amount_received, change_return
+        $data = $request->validate([
+            'payment_method' => 'required|in:cash,card,online',
+            'discount' => 'nullable|numeric|min:0',
+            'amount_received' => 'nullable|numeric|min:0',
+            'change_return' => 'nullable|numeric|min:0',
+        ]);
+        $sale->update($data);
+        return redirect()->route('sales.index')->with('success', 'Sale updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $sale = Sale::findOrFail($id);
+        // Delete related manual/external sales and purchases linked to this sale
+        $externalSales = \App\Models\ExternalSale::where('parent_sale_id', $sale->id)->get();
+        foreach ($externalSales as $extSale) {
+            $purchase = \App\Models\ExternalPurchase::where('purchaseE_id', $extSale->purchaseE_id)->first();
+            if ($purchase) {
+                $purchase->delete();
+            }
+            $extSale->delete();
+        }
+        $sale->delete();
+        return redirect()->route('sales.index')->with('success', 'Sale deleted successfully.');
     }
 }

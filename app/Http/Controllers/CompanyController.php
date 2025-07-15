@@ -62,13 +62,21 @@ class CompanyController extends Controller
             'taxCash' => 'nullable|numeric|min:0',
             'taxCard' => 'nullable|numeric|min:0',
             'taxOnline' => 'nullable|numeric|min:0',
+            'logo' => 'nullable|image|max:2048',
         ]);
 
-        $company->update($request->only([
+        $data = $request->only([
             'name', 'type', 'cell_no', 'email', 'ntn', 'tel_no',
             'taxCash', 'taxCard', 'taxOnline'
-        ]));
-
+        ]);
+        if ($request->hasFile('logo')) {
+            // Optionally delete old logo
+            if ($company->logo && \Storage::disk('public')->exists($company->logo)) {
+                \Storage::disk('public')->delete($company->logo);
+            }
+            $data['logo'] = $request->file('logo')->store('company_logos', 'public');
+        }
+        $company->update($data);
         return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
     }
 

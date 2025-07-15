@@ -21,6 +21,9 @@ return new class extends Migration
             $table->string('payment_method'); // E.g., Cash, Card
             $table->decimal('discount', 12, 2)->default(0);
             $table->unsignedBigInteger('company_id');
+            $table->unsignedBigInteger('customer_id')->nullable();
+            $table->unsignedBigInteger('distributor_id')->nullable();
+            $table->unsignedBigInteger('shopkeeper_id')->nullable();
             $table->string('customer_name')->nullable(); // For retail customer name
             $table->timestamps();
 

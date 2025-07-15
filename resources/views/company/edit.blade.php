@@ -15,7 +15,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('companies.update', $company->id) }}">
+    <form method="POST" action="{{ route('companies.update', $company->id) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -51,6 +51,15 @@
         <div class="mb-3">
             <label for="tel_no" class="form-label">Telephone Number</label>
             <input type="text" name="tel_no" id="tel_no" value="{{ old('tel_no', $company->tel_no) }}" class="form-control" placeholder="e.g. +0987654321">
+        </div>
+
+        <div class="mb-3">
+            <label for="logo" class="form-label">Company Logo</label><br>
+            @if($company->logo)
+                <img src="{{ asset('storage/' . $company->logo) }}" alt="Current Logo" style="max-height:60px; margin-bottom:8px;">
+            @endif
+            <input type="file" name="logo" id="logo" class="form-control">
+            <small class="text-muted">Upload a new logo to replace the current one.</small>
         </div>
 
         <hr>

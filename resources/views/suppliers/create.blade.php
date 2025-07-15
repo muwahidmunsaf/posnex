@@ -33,6 +33,25 @@
         </div>
 
         <div class="mb-3">
+            <label>Country</label>
+            <select name="country" class="form-control">
+                <option value="">Select Country</option>
+                <option value="Pakistan" selected>Pakistan</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="China">China</option>
+                <option value="India">India</option>
+                <option value="UAE">UAE</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Turkey">Turkey</option>
+                <option value="Afghanistan">Afghanistan</option>
+                <option value="Bangladesh">Bangladesh</option>
+                <option value="Thailand">Thailand</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
             <label>Address</label>
             <textarea name="address" class="form-control"></textarea>
         </div>

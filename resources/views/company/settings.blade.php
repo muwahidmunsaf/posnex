@@ -8,7 +8,7 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('company.settings.update') }}">
+        <form method="POST" action="{{ route('company.settings.update') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-3">
@@ -23,6 +23,24 @@
             <div class="mb-3">
                 <label>Email</label>
                 <input name="email" value="{{ old('email', $company->email) }}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Website</label>
+                <input name="website" value="{{ old('website', $company->website) }}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label>Address</label>
+                <input name="address" value="{{ old('address', $company->address) }}" class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label>Company Logo</label><br>
+                @if($company->logo)
+                    <img src="{{ asset('storage/' . $company->logo) }}" alt="Current Logo" style="max-height:60px; margin-bottom:8px;">
+                @endif
+                <input type="file" name="logo" class="form-control">
+                <small class="text-muted">Upload a new logo to replace the current one.</small>
             </div>
 
             <div class="mb-3">

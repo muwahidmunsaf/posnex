@@ -56,6 +56,7 @@
                                 <a href="{{ route('purchase.edit', $purchase->id) }}" class="btn btn-sm btn-warning"><i
                                         class="bi bi-pencil-square"></i>
                                 </a>
+                                <a href="{{ route('purchase.print', $purchase->id) }}" class="btn btn-sm btn-secondary" title="Print Invoice" target="_blank"><i class="bi bi-printer"></i></a>
 
                                 @php
                                     $userRole = auth()->user()->role;

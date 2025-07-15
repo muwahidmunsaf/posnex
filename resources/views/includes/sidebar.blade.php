@@ -43,9 +43,6 @@
                         <li><a href="{{ route('purchase.index') }}"
                                 class="nav-link {{ request()->routeIs('purchase.index') ? 'active' : 'text-dark' }}">Stock
                                 Entry</a></li>
-                        <li><a href="{{ route('categories.index') }}"
-                                class="nav-link {{ request()->routeIs('categories.index') ? 'active' : 'text-dark' }}">Categories</a>
-                        </li>
                     </ul>
                 </div>
             </li>
@@ -78,14 +75,31 @@
                 </div>
             </li>
 
-            {{-- Expenses --}}
-            @if($isAdmin || in_array('expenses', $perms))
-            <li>
-                <a href="{{ route('expenses.index') }}"
-                    class="nav-link {{ request()->is('expenses') ? 'active' : 'text-dark' }}">
-                    <i class="bi bi-wallet2 me-2"></i> Expenses
+            {{-- Distributors --}}
+            <li class="nav-item mt-2">
+                <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('distributors*') ? '' : 'collapsed' }}"
+                    data-bs-toggle="collapse" href="#distributorMenu"
+                    aria-expanded="{{ request()->is('distributors*') ? 'true' : 'false' }}">
+                    <span><i class="bi bi-truck me-2"></i> Distributors</span>
+                    <i class="bi bi-chevron-down"></i>
                 </a>
+                <div class="collapse {{ request()->is('distributors*') ? 'show' : '' }}" id="distributorMenu">
+                    <ul class="nav flex-column ps-4">
+                        <li><a href="{{ route('distributors.index') }}" class="nav-link {{ request()->routeIs('distributors.index') ? 'active' : 'text-dark' }}">Distributor List</a></li>
+                        <li><a href="{{ route('distributors.create') }}" class="nav-link {{ request()->routeIs('distributors.create') ? 'active' : 'text-dark' }}">Add Distributor</a></li>
+                        <li><a href="{{ route('shopkeepers.index') }}" class="nav-link {{ request()->routeIs('shopkeepers.index') ? 'active' : 'text-dark' }}">Shopkeepers</a></li>
+                    </ul>
+                </div>
             </li>
+
+            {{-- Returns/Exchanges --}}
+            @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin']))
+                <li class="mt-2">
+                    <a class="nav-link d-flex justify-content-between align-items-center {{ request()->routeIs('returns.index') ? 'active' : 'collapsed' }}"
+                        href="{{ route('returns.index') }}">
+                        <span><i class="bi bi-arrow-counterclockwise me-2"></i> Returns/Exchanges</span>
+                    </a>
+                </li>
             @endif
 
             {{-- HR Management --}}
@@ -105,6 +119,16 @@
                                 class="nav-link {{ request()->routeIs('salaries.index') ? 'active' : 'text-dark' }}">Salary Payments</a></li>
                     </ul>
                 </div>
+            </li>
+            @endif
+
+            {{-- Expenses --}}
+            @if($isAdmin || in_array('expenses', $perms))
+            <li>
+                <a href="{{ route('expenses.index') }}"
+                    class="nav-link {{ request()->is('expenses') ? 'active' : 'text-dark' }}">
+                    <i class="bi bi-wallet2 me-2"></i> Expenses
+                </a>
             </li>
             @endif
 
@@ -140,16 +164,6 @@
                     </ul>
                 </div>
             </li>
-            @endif
-
-            {{-- Returns/Exchanges --}}
-            @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin']))
-                <li class="mt-2">
-                    <a class="nav-link d-flex justify-content-between align-items-center {{ request()->routeIs('returns.index') ? 'active' : 'collapsed' }}"
-                        href="{{ route('returns.index') }}">
-                        <span><i class="bi bi-arrow-counterclockwise me-2"></i> Returns/Exchanges</span>
-                    </a>
-                </li>
             @endif
 
             {{-- User Management --}}

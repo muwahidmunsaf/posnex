@@ -153,11 +153,6 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$from, $to])
             ->sum('total_amount');
 
-        // Expenses
-        $totalExpense = Expense::where('company_id', $companyId)
-            ->whereBetween('created_at', [$from, $to])
-            ->sum('amount');
-
         // Returns
         $totalReturns = \App\Models\ReturnTransaction::whereHas('sale', function($q) use ($companyId, $from, $to) {
             $q->where('company_id', $companyId)
@@ -165,6 +160,80 @@ class ReportController extends Controller
         })->sum(DB::raw('amount * quantity'));
 
         $netSale = $totalSale - $totalReturns;
+
+        // Payments received (all sales in range)
+        $paymentsReceived = \App\Models\Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('amount_received');
+
+        // Pending balance (wholesale + distributor sales in range)
+        $pendingBalance = \App\Models\Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereIn('sale_type', ['wholesale', 'distributor'])
+            ->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+
+        // Accounts Payable (PKR)
+        $totalPurchasesPKR = \App\Models\Purchase::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('pkr_amount');
+        $totalSupplierPaymentsPKR = \App\Models\SupplierPayment::whereHas('supplier', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        })->whereBetween('payment_date', [$from, $to])->sum('pkr_amount');
+        $accountsPayablePKR = $totalPurchasesPKR - $totalSupplierPaymentsPKR;
+
+        // Expense Categories
+        $expenses = \App\Models\Expense::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->get();
+        $generalExpense = $expenses->filter(function($e) {
+            return !preg_match('/salary payment/i', $e->purpose)
+                && !preg_match('/marketing/i', $e->purpose)
+                && !preg_match('/utility|bill/i', $e->purpose)
+                && !preg_match('/misc/i', $e->purpose);
+        })->sum('amount');
+        $marketingExpense = $expenses->filter(function($e) {
+            return preg_match('/marketing/i', $e->purpose);
+        })->sum('amount');
+        $utilityExpense = $expenses->filter(function($e) {
+            return preg_match('/utility|bill/i', $e->purpose);
+        })->sum('amount');
+        $salaryExpense = $expenses->filter(function($e) {
+            return preg_match('/salary payment/i', $e->purpose);
+        })->sum('amount');
+        $miscExpense = $expenses->filter(function($e) {
+            return preg_match('/misc/i', $e->purpose);
+        })->sum('amount');
+        $totalExpense = $expenses->sum('amount');
+
+        // Cash Inflows (Sales and Payments with payment_method = cash)
+        $cashSales = Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->where('payment_method', 'cash')
+            ->sum('amount_received');
+        $cashExternalSales = ExternalSale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->where('payment_method', 'cash')
+            ->sum('total_amount');
+        // Payments table (if you want to include direct payments, add here)
+        // $cashPayments = Payment::where('company_id', $companyId)->where('payment_method', 'cash')->sum('amount_paid');
+        $totalCashIn = $cashSales + $cashExternalSales;
+
+        // Cash Outflows (Expenses and Supplier Payments with paymentWay/payment_method = cash)
+        $cashExpenses = $expenses->filter(function($e) {
+            return $e->paymentWay === 'cash';
+        })->sum('amount');
+        $cashSupplierPayments = \App\Models\SupplierPayment::whereHas('supplier', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        })->whereBetween('payment_date', [$from, $to])->where('payment_method', 'cash')->sum('pkr_amount');
+        $totalCashOut = $cashExpenses + $cashSupplierPayments;
+
+        $cashInHand = $totalCashIn - $totalCashOut;
+        $netCashFlow = $totalCashIn - $totalCashOut;
+
+        // Gross Profit and Net Profit
+        $grossProfit = $netSale - $totalPurchase;
+        $allExpenses = $generalExpense + $marketingExpense + $utilityExpense + $salaryExpense + $miscExpense;
+        $netProfit = $grossProfit - $allExpenses;
 
         return view('report.finance', compact(
             'from',
@@ -175,7 +244,19 @@ class ReportController extends Controller
             'externalSale',
             'totalExpense',
             'totalReturns',
-            'netSale'
+            'netSale',
+            'paymentsReceived',
+            'pendingBalance',
+            'accountsPayablePKR',
+            'generalExpense',
+            'marketingExpense',
+            'utilityExpense',
+            'salaryExpense',
+            'miscExpense',
+            'cashInHand',
+            'grossProfit',
+            'netProfit',
+            'netCashFlow'
         ));
     }
 

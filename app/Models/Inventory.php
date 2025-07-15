@@ -31,11 +31,6 @@ class Inventory extends Model
         return $this->belongsTo(Supplier::class);
     }
 
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
-
     public function purchase()
     {
         return $this->belongsTo(Purchase::class);
@@ -48,11 +43,16 @@ class Inventory extends Model
 
     public function inventorySales()
     {
-        return $this->hasMany(InventorySale::class);
+        return $this->hasMany(InventorySale::class, 'item_id');
     }
 
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function getUnitSoldAttribute()
+    {
+        return $this->inventorySales()->sum('quantity');
     }
 }

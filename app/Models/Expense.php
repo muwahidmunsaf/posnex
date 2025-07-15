@@ -7,23 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model
 {
-
     use HasFactory;
-
     protected $fillable = [
         'purpose',
         'details',
         'amount',
         'paidBy',
         'paymentWay',
-        'company_id'
+        'company_id',
     ];
-
-    /**
-     * The company this customer belongs to.
-     */
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
 }

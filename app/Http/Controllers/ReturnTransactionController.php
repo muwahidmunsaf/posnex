@@ -34,4 +34,21 @@ class ReturnTransactionController extends Controller
         $returns = $query->orderByDesc('created_at')->paginate(20);
         return view('returns.index', compact('returns'));
     }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'sale_id' => 'required|exists:sales,id',
+            'item_id' => 'required|exists:inventory,id',
+            'quantity' => 'required|integer|min:1',
+            'amount' => 'required|numeric|min:0',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $validated['processed_by'] = Auth::id();
+
+        $return = ReturnTransaction::create($validated);
+
+        return redirect()->route('returns.index')->with('success', 'Return created successfully.');
+    }
 } 

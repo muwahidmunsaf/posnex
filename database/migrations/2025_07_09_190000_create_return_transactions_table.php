@@ -18,11 +18,12 @@ return new class extends Migration
             $table->integer('quantity');
             $table->decimal('amount', 12, 2);
             $table->string('reason')->nullable();
-            $table->string('processed_by');
+            $table->unsignedBigInteger('processed_by')->nullable();
             $table->timestamps();
 
             $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade');
             $table->foreign('item_id')->references('id')->on('inventory')->onDelete('cascade');
+            // $table->foreign('processed_by')->references('id')->on('users')->onDelete('set null');
         });
     }
 

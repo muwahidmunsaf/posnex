@@ -59,6 +59,6 @@
             @endforelse
         </tbody>
     </table>
-    {{ $logs->links() }}
+    {{ $logs->links('vendor.pagination.bootstrap-5') }}
 </div>
 @endsection 

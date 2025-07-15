@@ -13,14 +13,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create a company first
+        $company = \App\Models\Company::factory()->create();
+
         // User::factory(10)->create();
 
-        User::updateOrCreate(
+        \App\Models\User::updateOrCreate(
             ['email' => 'admin@mail.com'],
             [
                 'name' => 'Super Admin',
                 'password' => bcrypt('password'),
-                'company_id' => 1,
+                'company_id' => $company->id,
                 'status' => 'active',
                 'role' => 'superadmin',
             ]

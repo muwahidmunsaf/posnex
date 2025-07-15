@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sales', function (Blueprint $table) {
-            $table->unsignedBigInteger('customer_id')->nullable()->after('company_id');
-
-            // Optional: add foreign key constraint if you have a customers table
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');
-        });
+        // customer_id is now added in the create_sales_table migration
+        // Only add the foreign key if it does not already exist
+        // Schema::table('sales', function (Blueprint $table) {
+        //     if (!Schema::hasColumn('sales', 'customer_id')) {
+        //         $table->unsignedBigInteger('customer_id')->nullable()->after('company_id');
+        //     }
+        //     $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');
+        // });
     }
 
     /**

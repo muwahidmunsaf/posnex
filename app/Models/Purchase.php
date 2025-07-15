@@ -14,6 +14,9 @@ class Purchase extends Model
         'total_amount',
         'company_id',
         'purchase_date',
+        'currency_code',
+        'exchange_rate_to_pkr',
+        'pkr_amount',
     ];
 
     // Relationships

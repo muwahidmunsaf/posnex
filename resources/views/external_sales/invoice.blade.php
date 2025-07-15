@@ -3,115 +3,134 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Receipt #{{ $sale->saleE_id }}</title>
+    <title>Manual Sale Invoice - {{ $sale->saleE_id }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            max-width: 80mm;
-            margin: 0 auto;
-            padding: 10px;
-        }
-
-        h4,
-        h5 {
-            text-align: center;
-        }
-
-        .table {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .table th,
-        .table td {
-            padding: 4px;
-            font-size: 12px;
-        }
-
-        .summary {
-            margin-top: 10px;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-        }
-
-        .footer {
-            text-align: center;
-            font-size: 10px;
-            border-top: 1px dashed #000;
-            padding-top: 5px;
-            margin-top: 10px;
-        }
-
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #b71c1c; padding: 24px 32px 12px 32px; }
+        .header-left { display: flex; align-items: center; }
+        .logo { height: 60px; margin-right: 18px; }
+        .company-name { font-size: 2rem; font-weight: bold; color: #b71c1c; }
+        .company-details { text-align: right; font-size: 1rem; color: #333; line-height: 1.7; }
+        .company-details i { color: #b71c1c; margin-right: 4px; }
+        .summary-row { display: flex; justify-content: flex-start; align-items: center; gap: 32px; margin: 24px 0 0 32px; }
+        .summary-row span { font-weight: bold; font-size: 1.08rem; color: #b71c1c; margin-right: 12px; }
+        .summary-row .value { color: #222; font-weight: normal; margin-right: 24px; }
+        .amount-due { text-align: right; font-size: 1.5rem; font-weight: bold; color: #888; margin: 0 32px 0 0; }
+        .amount-due strong { color: #b71c1c; }
+        .to-block { margin: 18px 0 0 32px; font-size: 1.05rem; }
+        .to-block b { color: #b71c1c; }
+        .to-block .label { font-weight: bold; }
+        .to-block .value { color: #222; }
+        .table-container { margin: 24px 32px 0 32px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+        th, td { border: 1.5px solid #b71c1c; padding: 8px 12px; font-size: 1rem; }
+        th { background: #b71c1c; color: #fff; font-weight: bold; text-align: center; }
+        td { text-align: center; }
+        tr.total-row td { font-weight: bold; background: #f3e5e5; }
+        .totals-block { width: 350px; float: right; margin: 18px 32px 0 0; font-size: 1.05rem; }
+        .totals-block table { width: 100%; border: none; }
+        .totals-block td { border: none; padding: 4px 0; text-align: right; }
+        .totals-block .label { color: #333; }
+        .totals-block .value { color: #222; }
+        .totals-block .grand { font-weight: bold; color: #b71c1c; font-size: 1.13rem; }
+        .terms { clear: both; margin: 48px 32px 0 32px; font-size: 0.98rem; color: #b71c1c; }
+        .thankyou { text-align: center; font-size: 1.1rem; color: #b71c1c; margin-top: 32px; font-weight: bold; letter-spacing: 1px; }
         @media print {
-            .no-print {
-                display: none !important;
-            }
-
-            body {
-                width: 80mm;
-            }
+            .no-print { display: none !important; }
+            body { background: #fff !important; }
+            .header { border-bottom: 2.5px solid #b71c1c !important; }
+            .totals-block { float: none; margin: 18px auto 0 auto; }
         }
     </style>
 </head>
-
 <body>
-
-    <h4>{{ auth()->user()->company->name ?? 'POS System' }}</h4>
-    <h5>Manual Sale Receipt</h5>
-    <p>
-        <strong>Sale ID:</strong> {{ $sale->saleE_id }}<br>
-        <strong>Date:</strong> {{ $sale->created_at->format('d-m-Y h:i A') }}<br>
-        <strong>Created By:</strong> {{ $sale->created_by }}<br>
-        <strong>Customer:</strong> {{ $sale->customer->name ?? 'N/A' }}
-    </p>
-
-    <table class="table table-bordered">
+    <div class="header">
+        <div class="header-left">
+            @if(auth()->user()->company->logo ?? false)
+                <img src="{{ asset('storage/' . auth()->user()->company->logo) }}" class="logo" alt="Company Logo">
+            @endif
+            <span class="company-name">{{ auth()->user()->company->name ?? 'POS System' }}</span>
+        </div>
+        <div class="company-details">
+            @if(auth()->user()->company->address ?? false) <div><i class="bi bi-geo-alt"></i> {{ auth()->user()->company->address }}</div> @endif
+            @if(auth()->user()->company->cell_no ?? false) <div><i class="bi bi-telephone"></i> {{ auth()->user()->company->cell_no }}</div> @endif
+            @if(auth()->user()->company->email ?? false) <div><i class="bi bi-envelope"></i> {{ auth()->user()->company->email }}</div> @endif
+            @if(auth()->user()->company->website ?? false) <div><i class="bi bi-globe"></i> {{ auth()->user()->company->website }}</div> @endif
+        </div>
+    </div>
+    <div class="summary-row" style="margin: 24px 32px 0 32px; justify-content: space-between; white-space: nowrap; gap: 16px;">
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice Date:</span><span class="value">{{ \Carbon\Carbon::parse($sale->created_at)->format('d-M-Y') }}</span></span>
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Issue Date:</span><span class="value">{{ \Carbon\Carbon::parse($sale->created_at)->format('d-M-Y') }}</span></span>
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice No:</span><span class="value">{{ $sale->saleE_id }}</span></span>
+    </div>
+    <div style="text-align:center; margin-top:24px; margin-bottom:8px;">
+        <span style="font-size:2rem; font-weight:bold; color:#b71c1c; letter-spacing:1px;">Manual Sale Invoice</span>
+    </div>
+    <div class="to-block">
+        <b>Customer</b><br>
+        <span class="label">Name:</span> <span class="value">{{ $sale->customer->name ?? 'N/A' }}</span><br>
+        <span class="label">Created By:</span> <span class="value">{{ $sale->created_by }}</span><br>
+    </div>
+    <div class="table-container">
+        <table>
         <thead>
             <tr>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Rate</th>
-                <th>Total</th>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Purchase Amount</th>
+                    <th>Selling Amount</th>
+                    <th>Buy From</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>{{ $sale->purchase->item_name ?? 'N/A' }}</td>
                 <td>1</td>
+                    <td>{{ number_format($sale->purchase->purchase_amount ?? 0, 2) }}</td>
                 <td>{{ number_format($sale->sale_amount, 2) }}</td>
-                <td>{{ number_format($sale->sale_amount, 2) }}</td>
+                    <td>{{ $sale->purchase->purchase_source ?? '-' }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td style="text-align:right; font-weight:bold;" colspan="1">Total</td>
+                    <td style="font-weight:bold;">1</td>
+                    <td style="font-weight:bold;">{{ number_format($sale->purchase->purchase_amount ?? 0, 2) }}</td>
+                    <td style="font-weight:bold;">{{ number_format($sale->sale_amount, 2) }}</td>
+                    <td></td>
             </tr>
         </tbody>
     </table>
-
-    <div class="summary">
-        <p><strong>Subtotal:</strong> {{ number_format($sale->sale_amount, 2) }} <br>
-            <strong>Payment Method:</strong> {{ ucfirst($sale->payment_method) }} <br>
-            <strong>Tax:</strong> {{ number_format($sale->tax_amount, 2) }}
-        </p>
-        <h5><strong>Total:</strong> {{ number_format($sale->total_amount, 2) }}</h5>
-
     </div>
-
-    <div class="footer">
-        <p>Thank you for your purchase!</p>
-        <p>Developed by <strong>DevZyte</strong><br>
-            <small>www.devzyte.com | info@devzyte.com</small><br>
-            <small>(+92) 346-7911195</small>
-        </p>
+    <div class="totals-block" style="float: right; margin: 18px 32px 0 0;">
+        <table>
+            <tr>
+                <td class="label">Sub Total</td>
+                <td class="value">{{ number_format($sale->sale_amount, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="label">Tax ({{ $sale->tax_amount ?? 0 }})</td>
+                <td class="value">{{ number_format($sale->tax_amount ?? 0, 2) }}</td>
+            </tr>
+            <tr>
+                <td class="label">Payment Method</td>
+                <td class="value">{{ ucfirst($sale->payment_method) }}</td>
+            </tr>
+            <tr class="grand">
+                <td class="grand">Grand Total</td>
+                <td class="grand">{{ number_format($sale->total_amount, 2) }}</td>
+            </tr>
+        </table>
     </div>
-
-    <div class="text-center no-print mt-3">
-        <button class="btn btn-primary btn-sm" onclick="window.print()">Print Receipt</button>
+    <div style="clear:both;"></div>
+    <div class="terms">
+        <b>Terms & Conditions:</b> This is a computer-generated invoice and does not require a signature.
+    </div>
+    <div class="thankyou">Thank you for your business!</div>
+    <div class="no-print" style="text-align:center; margin-bottom:32px;">
+        <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;">Print</button>
         <a href="{{ route('external-sales.index') }}" class="btn btn-secondary btn-sm">Back</a>
     </div>
-
 </body>
-
 </html>

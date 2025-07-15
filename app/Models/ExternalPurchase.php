@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExternalPurchase extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'purchaseE_id',
         'item_name',
@@ -14,7 +16,8 @@ class ExternalPurchase extends Model
         'purchase_amount',
         'purchase_source',
         'created_by',
-        'company_id'
+        'company_id',
+        'parent_sale_id',
     ];
 
     public function company()

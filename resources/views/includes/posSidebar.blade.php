@@ -18,14 +18,6 @@
                 </a>
             </li>
 
-            {{-- Manual Sale --}}
-            <li class="nav-item">
-                <a href="{{ route('external-sales.create') }}" 
-                   class="nav-link {{ request()->routeIs('external-sales.create') ? 'active' : 'text-dark' }}">
-                    <i class="bi bi-pencil-square me-2"></i> Manual Sale
-                </a>
-            </li>
-
             {{-- Sales Record --}}
             <li class="nav-item">
                 <a href="{{ route('sales.index') }}" 

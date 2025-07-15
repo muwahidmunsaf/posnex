@@ -2,51 +2,123 @@
 
 @section('pos')
 <div class="container mt-4">
-    <h3>MANNUAL SALE INVOICE</h3>
-<hr>
+    <h3><i class="fa fa-file-invoice-dollar text-secondary me-2"></i>MANUAL SALE INVOICE</h3>
+    <hr>
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Sale ID</th>
-                <th>Item Name</th>
-                <th>Sale Amount</th>
-                <th>Tax Amount</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Created By</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($externalSales as $sale)
-                <tr>
-                    <td>{{ $sale->saleE_id }}</td>
-                    <td>{{ $sale->purchase->item_name ?? '-' }}</td>
-                    <td>{{ number_format($sale->sale_amount, 2) }}</td>
-                    <td>{{ number_format($sale->tax_amount, 2) }}</td>
-                    <td>{{ number_format($sale->total_amount, 2) }}</td>
-                    <td>{{ ucfirst($sale->payment_method) }}</td>
-                    <td>{{ $sale->created_by }}</td>
-                    <td>
-                        <a href="{{ route('external-sales.invoice', $sale->id) }}" class="btn btn-sm btn-primary" target="_blank"><i class="bi bi-printer"></i> Print</a>
-                        {{-- Uncomment if delete is needed --}}
-                        {{-- 
-                        <form action="{{ route('external-sales.destroy', $sale->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Are you sure?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                        --}}
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    {{ $externalSales->links('vendor.pagination.bootstrap-5') }}
+    <div class="card shadow p-3 mb-4">
+        <div class="d-flex flex-row flex-wrap align-items-center gap-2 mb-3" style="max-width:500px;">
+            <input type="text" id="invoiceSearch" class="form-control rounded-pill" placeholder="Search Invoice..." style="min-width:180px;">
+            <button type="button" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" title="Search" style="width:40px;height:40px;" onclick="filterTable()"><i class="fa fa-search"></i></button>
+            <button type="button" class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" title="Reset" style="width:40px;height:40px;" onclick="resetTable()"><i class="fa fa-undo"></i></button>
+        </div>
+        <div class="table-responsive rounded">
+            <table class="table table-hover align-middle rounded" id="invoiceTable" style="overflow:hidden;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Item Name</th>
+                        <th>Sale Amount</th>
+                        <th>Purchase Amount</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Created By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($externalSales as $sale)
+                        <tr style="transition:background 0.2s;">
+                            <td>{{ $sale->saleE_id }}</td>
+                            <td>{{ $sale->purchase->item_name ?? '-' }}</td>
+                            <td>{{ number_format($sale->sale_amount, 2) }}</td>
+                            <td>{{ isset($sale->purchase->purchase_amount) ? number_format($sale->purchase->purchase_amount, 2) : '-' }}</td>
+                            <td>{{ number_format($sale->total_amount, 2) }}</td>
+                            <td>{{ ucfirst($sale->payment_method) }}</td>
+                            <td>{{ $sale->created_by }}</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ route('external-sales.invoice', $sale->id) }}" class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center" target="_blank" title="Print"><i class="fa fa-print"></i></a>
+                                    @if($sale->parent_sale_id)
+                                        <button class="btn btn-sm btn-danger rounded-circle d-flex align-items-center justify-content-center disabled" title="Delete disabled for manual products linked to a regular sale" tabindex="-1" aria-disabled="true"><i class="fa fa-trash"></i></button>
+                                    @else
+                                        <form action="{{ route('external-sales.destroy', $sale->id) }}" method="POST" style="display:inline-block;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger rounded-circle d-flex align-items-center justify-content-center" title="Delete" onclick="return confirm('Are you sure you want to delete this manual sale?')">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        {{ $externalSales->links('vendor.pagination.bootstrap-5') }}
+    </div>
 </div>
+<!-- FontAwesome CDN for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+.table thead th { border-top: none; }
+.table-hover tbody tr:hover { background: #f5f7fa; }
+.table td, .table th {
+    vertical-align: middle;
+    border-radius: 8px;
+    border: 1.5px solid #e3e6ea;
+}
+.table tr {
+    border-bottom: 2.5px solid #cfd8dc;
+}
+.btn.rounded-circle { width: 32px; height: 32px; padding: 0; font-size: 1.1rem; }
+.form-control.rounded-pill { border-radius: 50px; }
+.card { border-radius: 18px; }
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+@media (max-width: 991px) {
+    .table {
+        min-width: 700px;
+        font-size: 13px;
+    }
+    .btn.rounded-circle { width: 28px; height: 28px; font-size: 1rem; }
+    .form-control.rounded-pill { font-size: 13px; }
+}
+@media (max-width: 767px) {
+    .table {
+        min-width: 600px;
+        font-size: 12px;
+    }
+    .btn.rounded-circle { width: 24px; height: 24px; font-size: 0.95rem; }
+    .form-control.rounded-pill { font-size: 12px; }
+    .table-responsive { border-radius: 8px; }
+}
+</style>
+<script>
+function filterTable() {
+    let value = document.getElementById('invoiceSearch').value.toLowerCase();
+    let rows = document.querySelectorAll('#invoiceTable tbody tr');
+    rows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        row.style.display = text.includes(value) ? '' : 'none';
+    });
+}
+document.getElementById('invoiceSearch').addEventListener('keyup', filterTable);
+function resetTable() {
+    document.getElementById('invoiceSearch').value = '';
+    filterTable();
+}
+</script>
 @endsection

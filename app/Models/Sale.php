@@ -24,6 +24,8 @@ class Sale extends Model
         'sale_type',
         'amount_received',
         'change_return',
+        'distributor_id',
+        'shopkeeper_id',
     ];
 
     public function inventorySales()
@@ -43,5 +45,19 @@ class Sale extends Model
     public function returns()
     {
         return $this->hasMany(ReturnTransaction::class);
+    }
+
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class);
+    }
+    public function shopkeeper()
+    {
+        return $this->belongsTo(Shopkeeper::class);
+    }
+
+    public function manualProducts()
+    {
+        return $this->hasMany(\App\Models\ExternalSale::class, 'parent_sale_id');
     }
 }

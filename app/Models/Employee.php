@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Employee extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'name',
         'position',
@@ -17,9 +16,4 @@ class Employee extends Model
         'address',
         'company_id',
     ];
-
-    public function salaryPayments()
-    {
-        return $this->hasMany(SalaryPayment::class);
-    }
 } 

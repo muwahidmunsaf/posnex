@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class Customer extends Model
 {
     use HasFactory;
-
-    // Fillable fields for mass assignment
     protected $fillable = [
         'name',
         'type',
@@ -21,21 +19,18 @@ class Customer extends Model
         'company_id',
     ];
 
-    /**
-     * The company this customer belongs to.
-     */
     public function company()
     {
         return $this->belongsTo(Company::class);
     }
 
-    public function payments()
-    {
-        return $this->hasMany(Payment::class);
-    }
-
     public function sales()
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasMany(\App\Models\Sale::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment::class);
     }
 }

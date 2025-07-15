@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExternalSale extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'saleE_id',
         'purchaseE_id',
@@ -16,7 +18,8 @@ class ExternalSale extends Model
         'total_amount',
         'created_by',
         'company_id',
-        'customer_id'
+        'customer_id',
+        'parent_sale_id',
     ];
 
     public function company()
@@ -28,8 +31,9 @@ class ExternalSale extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    
     public function purchase()
-{
-    return $this->belongsTo(ExternalPurchase::class, 'purchaseE_id', 'purchaseE_id');
-}
+    {
+        return $this->belongsTo(ExternalPurchase::class, 'purchaseE_id', 'purchaseE_id');
+    }
 }
