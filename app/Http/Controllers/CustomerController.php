@@ -22,18 +22,30 @@ class CustomerController extends Controller
             abort(403, 'Unauthorized');
         }
         $companyId = Auth::user()->company_id;
+        $city = $request->city;
+        $from = $request->from;
+        $to = $request->to;
         $query = Customer::where('company_id', $companyId)
             ->where('type', 'wholesale'); // Only wholesale customers
-        if ($request->filled('city')) {
-            $query->where('city', 'like', '%' . $request->city . '%');
+        if ($city) {
+            $query->where('city', 'like', '%' . $city . '%');
         }
-        $customers = $query->with('payments')->paginate(10);
-        $allCustomers = Customer::where('company_id', $companyId)->where('type', 'wholesale')->with('payments', 'sales')->get();
-        $totalCustomers = $allCustomers->count();
+        // Only eager load sales/payments within date range
+        $customers = $query->with([
+            'sales' => function ($q) use ($from, $to) {
+                if ($from) $q->where('created_at', '>=', $from);
+                if ($to) $q->where('created_at', '<=', $to);
+            },
+            'payments' => function ($q) use ($from, $to) {
+                if ($from) $q->where('created_at', '>=', $from);
+                if ($to) $q->where('created_at', '<=', $to);
+            }
+        ])->paginate(10);
+        $totalCustomers = $customers->total();
         $totalReceived = 0;
         $totalBalance = 0;
         $totalSales = 0;
-        foreach ($allCustomers as $customer) {
+        foreach ($customers as $customer) {
             $received = $customer->payments->sum('amount_paid') + $customer->sales->sum('amount_received');
             $sales = $customer->sales->sum('total_amount');
             $returns = 0;
@@ -45,14 +57,7 @@ class CustomerController extends Controller
             $totalBalance += $balance;
             $totalSales += $sales;
         }
-        $city = $request->city;
-        // Calculate outstanding for each customer
-        foreach ($customers as $customer) {
-            $customer->outstanding = $customer->payments->sum(function($p) {
-                return $p->amount_due - $p->amount_paid;
-            });
-        }
-        return view('customers.index', compact('customers', 'city', 'totalCustomers', 'totalReceived', 'totalBalance', 'totalSales'));
+        return view('customers.index', compact('customers', 'city', 'from', 'to', 'totalCustomers', 'totalReceived', 'totalBalance', 'totalSales'));
     }
 
     public function create()
