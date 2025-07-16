@@ -185,6 +185,84 @@
         </div>
     </div>
 </div>
+<!-- Financial Overview Chart for Print -->
+<div style="margin: 40px 0 0 0; text-align: center;">
+    <div style="font-size: 1.2rem; color: #b71c1c; font-weight: bold; margin-bottom: 10px;">Financial Overview</div>
+    <canvas id="financeChartPrint" width="700" height="220" style="max-width:100%;"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('financeChartPrint').getContext('2d');
+    var chartColors = [
+        'rgba(25, 135, 84, 0.85)',
+        'rgba(0, 123, 255, 0.85)',
+        'rgba(13, 110, 253, 0.85)',
+        'rgba(255, 193, 7, 0.85)',
+        'rgba(220, 53, 69, 0.85)'
+    ];
+    var borderColors = [
+        'rgba(25, 135, 84, 1)',
+        'rgba(0, 123, 255, 1)',
+        'rgba(13, 110, 253, 1)',
+        'rgba(255, 193, 7, 1)',
+        'rgba(220, 53, 69, 1)'
+    ];
+    var chartLabels = ['Internal Sales', 'External Sales', 'Internal Purchases', 'External Purchases', 'Expenses'];
+    var chartData = [
+        {{ $totalInternalSales }},
+        {{ $totalExternalSales }},
+        {{ $totalInternalPurchases }},
+        {{ $totalExternalPurchases }},
+        {{ $totalExpenses }}
+    ];
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Amount (Rs.)',
+                data: chartData,
+                backgroundColor: chartColors,
+                borderColor: borderColors,
+                borderWidth: 2,
+                borderRadius: 14,
+                maxBarThickness: 48,
+            }]
+        },
+        options: {
+            responsive: false,
+            layout: { padding: { top: 40 } },
+            plugins: {
+                legend: { display: false },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'end',
+                    offset: 8,
+                    color: '#222',
+                    font: { weight: 'bold', size: 13 },
+                    formatter: function(value) {
+                        return 'Rs. ' + value.toLocaleString();
+                    }
+                }
+            },
+            animation: false,
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#b71c1c', font: { weight: 'bold' } }
+                },
+                y: {
+                    grid: { color: '#eee', borderDash: [4,4] },
+                    ticks: { color: '#888', callback: value => 'Rs. ' + value.toLocaleString() }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+});
+</script>
 <style>
 .dashboard-cards-print {
     margin-top: 10px;
