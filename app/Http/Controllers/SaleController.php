@@ -383,7 +383,7 @@ class SaleController extends Controller
                     'quantity' => $qty,
                     'amount' => $amount,
                     'reason' => $reason,
-                    'processed_by' => $user->name,
+                    'processed_by' => $user->id,
                 ]);
             }
         }
