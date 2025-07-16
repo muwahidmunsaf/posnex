@@ -37,7 +37,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 @if (auth()->user()->role === 'superadmin')
-                                    <li><a class="dropdown-item" href="{{ route('companies.index') }}">Companies</a></li>
+                                    {{-- <li><a class="dropdown-item" href="{{ route('companies.index') }}">Companies</a></li> --}}
                                     <li><a class="dropdown-item" href="{{ route('users.index') }}">Users</a></li>
                                 @endif
                                 <li><a class="dropdown-item" href="{{ route('company.settings.edit') }}">Company Details</a></li>

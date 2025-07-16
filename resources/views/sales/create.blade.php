@@ -155,9 +155,9 @@
                                     @foreach ($inventories as $inventory)
                                         @php
                                             $isInactive = $inventory->status === 'inactive';
-                                            $isOutOfStock = $inventory->unit <= 0;
-                                            $isLowStock = !$isOutOfStock && $inventory->unit < 10;
-                                            $disabled = $isInactive || $isOutOfStock;
+                                            //$isOutOfStock = $inventory->unit <= 0;
+                                            //$isLowStock = !$isOutOfStock && $inventory->unit < 10;
+                                            $disabled = $isInactive; // Only inactive items are disabled
                                         @endphp
                                         <button type="button"
                                             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {{ $disabled ? 'disabled' : '' }}"
@@ -173,9 +173,7 @@
                                                     In Stock: {{ $inventory->unit }}
                                                     @if ($isInactive)
                                                         <span class="badge bg-secondary ms-2">Inactive</span>
-                                                    @elseif($isOutOfStock)
-                                                        <span class="badge bg-danger ms-2">Out of Stock</span>
-                                                    @elseif($isLowStock)
+                                                    @elseif($inventory->unit < 10)
                                                         <span class="badge bg-warning text-dark ms-2">Low Stock</span>
                                                     @endif
                                                 </div>
@@ -452,7 +450,7 @@ $(document).ready(function() {
                 </div>
                 <div class="col-md-2">
                     <input type="number" name="items[${itemId}][quantity]"
-                        class="form-control quantity-input" min="1" max="${availableStock}" value="1" placeholder="Quantity"
+                        class="form-control quantity-input" value="1" placeholder="Quantity"
                         data-retail="${retailPrice}"
                         data-wholesale="${wholesalePrice}"
                         data-stock="${availableStock}">
@@ -610,6 +608,23 @@ $(document).ready(function() {
             }
         }
     });
+
+    // --- TAX PERCENTAGE DYNAMIC UPDATE ---
+    // Define tax rates from backend (passed as JS object or inline script)
+    var taxRates = {
+        cash: {{ $company->tax_cash ?? 0 }},
+        card: {{ $company->tax_card ?? 0 }},
+        online: {{ $company->tax_online ?? 0 }}
+    };
+    function updateTaxPercentage() {
+        var method = $('#payment_method').val();
+        var percent = taxRates[method] || 0;
+        $('#tax_percentage').val(percent + '%');
+        calculateTotals();
+    }
+    $('#payment_method').on('change', updateTaxPercentage);
+    // Initial set
+    updateTaxPercentage();
         });
     </script>
 @endsection

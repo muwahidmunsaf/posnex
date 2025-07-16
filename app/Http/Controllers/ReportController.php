@@ -164,7 +164,14 @@ class ReportController extends Controller
         // Payments received (all sales in range)
         $paymentsReceived = \App\Models\Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
-            ->sum('amount_received');
+            ->get()
+            ->sum(function($sale) {
+                if ($sale->sale_type === 'retail') {
+                    return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
+                } else {
+                    return $sale->amount_received ?? 0;
+                }
+            });
 
         // Pending balance (wholesale + distributor sales in range)
         $pendingBalance = \App\Models\Sale::where('company_id', $companyId)
@@ -209,7 +216,14 @@ class ReportController extends Controller
         $cashSales = Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
             ->where('payment_method', 'cash')
-            ->sum('amount_received');
+            ->get()
+            ->sum(function($sale) {
+                if ($sale->sale_type === 'retail') {
+                    return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
+                } else {
+                    return $sale->amount_received ?? 0;
+                }
+            });
         $cashExternalSales = ExternalSale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
             ->where('payment_method', 'cash')

@@ -70,7 +70,7 @@
                                             <span>{{ $item->item->item_name ?? 'Item' }}</span>
                                         </div>
                                         <div class="col-3">
-                                            <input type="number" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty" min="1" value="{{ $item->quantity }}">
+                                            <input type="number" name="items[{{ $i }}][quantity]" class="form-control form-control-sm item-qty" min="0" value="{{ $item->quantity }}">
                                         </div>
                                         <div class="col-3">
                                             <input type="number" name="items[{{ $i }}][amount]" class="form-control form-control-sm item-amount" min="0" step="0.01" value="{{ $item->amount }}">
@@ -144,7 +144,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="change_return" class="form-label">Change to Return</label>
-                                    <input type="number" id="change_return" name="change_return" class="form-control" value="{{ $sale->change_return }}">
+                                    <input type="number" id="change_return" name="change_return" class="form-control" step="0.01" value="{{ $sale->change_return }}">
                                 </div>
                                 <div class="d-flex justify-content-between mt-4">
                                     <button type="submit" class="btn btn-danger w-50">Update Sale</button>
@@ -169,9 +169,9 @@
                                 @foreach ($inventories as $inventory)
                                     @php
                                         $isInactive = $inventory->status === 'inactive';
-                                        $isOutOfStock = $inventory->unit <= 0;
-                                        $isLowStock = !$isOutOfStock && $inventory->unit < 10;
-                                        $disabled = $isInactive || $isOutOfStock;
+                                        //$isOutOfStock = $inventory->unit <= 0;
+                                        //$isLowStock = !$isOutOfStock && $inventory->unit < 10;
+                                        $disabled = $isInactive; // Only inactive items are disabled
                                     @endphp
                                     <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {{ $disabled ? 'disabled' : '' }}"
                                         data-id="{{ $inventory->id }}" data-name="{{ $inventory->item_name }}"
@@ -186,9 +186,7 @@
                                                 In Stock: {{ $inventory->unit }}
                                                 @if ($isInactive)
                                                     <span class="badge bg-secondary ms-2">Inactive</span>
-                                                @elseif($isOutOfStock)
-                                                    <span class="badge bg-danger ms-2">Out of Stock</span>
-                                                @elseif($isLowStock)
+                                                @elseif($inventory->unit < 10)
                                                     <span class="badge bg-warning text-dark ms-2">Low Stock</span>
                                                 @endif
                                             </div>
@@ -243,7 +241,7 @@ $(document).ready(function() {
                 <span>${itemName}</span>
             </div>
             <div class="col-3">
-                <input type="number" name="items[${idx}][quantity]" class="form-control form-control-sm item-qty" min="1" value="1">
+                <input type="number" name="items[${idx}][quantity]" class="form-control form-control-sm item-qty" min="0" value="1">
             </div>
             <div class="col-3">
                 <input type="number" name="items[${idx}][amount]" class="form-control form-control-sm item-amount" min="0" step="0.01" value="${parseFloat(price).toFixed(2)}">

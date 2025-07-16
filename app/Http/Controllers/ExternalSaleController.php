@@ -15,10 +15,7 @@ class ExternalSaleController extends Controller
      */
     public function index()
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $companyId = Auth::user()->company_id;
         $externalSales = ExternalSale::whereHas('purchase', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
@@ -32,10 +29,7 @@ class ExternalSaleController extends Controller
      */
     public function create()
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $user = Auth::user();
         $company = $user->company;
 
@@ -62,10 +56,7 @@ class ExternalSaleController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $user = Auth::user();
         $company = $user->company;
         $paymentMethod = $request->payment_method ?? 'cash';
@@ -144,10 +135,7 @@ class ExternalSaleController extends Controller
      */
     public function edit(string $id)
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $user = Auth::user();
         $company = $user->company;
         $sale = ExternalSale::with('purchase')->findOrFail($id);
@@ -172,10 +160,7 @@ class ExternalSaleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $sale = ExternalSale::with('purchase')->findOrFail($id);
         $purchase = $sale->purchase;
 
@@ -208,10 +193,7 @@ class ExternalSaleController extends Controller
      */
     public function destroy(string $id)
     {
-        if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
-            abort(403);
-        }
-        
+        // Removed role-based access check; allow any authenticated user
         $sale = ExternalSale::findOrFail($id);
         // Optionally delete the related external purchase
         $purchase = $sale->purchase;

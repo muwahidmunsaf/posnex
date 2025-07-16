@@ -22,12 +22,12 @@ class SaleController extends Controller
         $company = $user->company;
         $distributors = \App\Models\Distributor::where('company_id', $company->id)->get();
         $inventories = \App\Models\Inventory::where('company_id', $company->id)->get();
-        $shopkeepers = \App\Models\Shopkeeper::where('distributor_id', $distributors->pluck('id'))->get();
+        $shopkeepers = \App\Models\Shopkeeper::whereIn('distributor_id', $distributors->pluck('id'))->get();
         $customers = \App\Models\Customer::where('company_id', $company->id)->get();
         // Generate idempotency token
         $token = Str::uuid()->toString();
         Session::put('sale_idempotency_token', $token);
-        return view('sales.create', compact('distributors', 'inventories', 'shopkeepers', 'customers', 'token'));
+        return view('sales.create', compact('distributors', 'inventories', 'shopkeepers', 'customers', 'token', 'company'));
     }
 
 
@@ -55,12 +55,12 @@ class SaleController extends Controller
         $rules = [
             'items' => 'array',
             'items.*.inventory_id' => 'required|exists:inventory,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer|min:0',
             'payment_method' => 'required|in:cash,card,online',
             'discount' => 'nullable|numeric|min:0',
             'manual_products' => 'array',
             'manual_products.*.name' => 'required_with:manual_products|string|max:255',
-            'manual_products.*.quantity' => 'required_with:manual_products|integer|min:1',
+            'manual_products.*.quantity' => 'required_with:manual_products|integer|min:0',
             'manual_products.*.selling_price' => 'required_with:manual_products|numeric|min:0',
             'manual_products.*.purchase_price' => 'required_with:manual_products|numeric|min:0',
             'manual_products.*.buy_from' => 'nullable|string|max:255',
@@ -103,10 +103,18 @@ class SaleController extends Controller
         }
 
         $subtotalAfterDiscount = $subtotal - $discount;
-        $taxField = 'tax' . ucfirst($request->payment_method); // taxCash, taxCard, taxOnline
+        $taxField = 'tax_' . strtolower($request->payment_method); // tax_cash, tax_card, tax_online
         $tax_percentage = $company->$taxField ?? 0;
         $tax_amount = ($tax_percentage / 100) * $subtotalAfterDiscount;
         $total_amount = $subtotalAfterDiscount + $tax_amount;
+
+        // Retail: Validate received amount >= total amount
+        if ($saleType === 'retail') {
+            $received = $request->amount_received ?? 0;
+            if ($received < $total_amount) {
+                return back()->withErrors(['amount_received' => 'Received amount cannot be less than total amount (including tax).'])->withInput();
+            }
+        }
 
         // Generate custom sale_code
         $prefix = strtoupper(substr($company->name, 0, 1));
@@ -208,7 +216,7 @@ class SaleController extends Controller
             $saleE_id = "$prefixE-" . str_pad($serialSale, 5, '0', STR_PAD_LEFT);
 
             // Tax for manual product
-            $taxField = 'tax' . ucfirst($request->payment_method);
+            $taxField = 'tax_' . strtolower($request->payment_method);
             $taxPercentage = $company->$taxField ?? 0;
             $taxAmount = ($taxPercentage / 100) * ($mp['selling_price'] * $mp['quantity']);
             $totalAmount = ($mp['selling_price'] * $mp['quantity']) + $taxAmount;
@@ -406,21 +414,84 @@ class SaleController extends Controller
     public function update(Request $request, $id)
     {
         $sale = Sale::findOrFail($id);
-        // You can add validation and update logic here similar to store()
-        // For now, just allow updating payment_method, discount, amount_received, change_return
+        $company = $sale->company;
+        // Restore inventory units for previous items
+        $oldInventorySales = \App\Models\InventorySale::where('sale_id', $sale->id)->get();
+        foreach ($oldInventorySales as $oldInvSale) {
+            $inventory = \App\Models\Inventory::find($oldInvSale->item_id);
+            if ($inventory) {
+                $inventory->increment('unit', $oldInvSale->quantity);
+            }
+        }
+        // Delete old inventory_sales records
+        \App\Models\InventorySale::where('sale_id', $sale->id)->delete();
+        // Validate and update sale (basic fields only, for now)
         $data = $request->validate([
             'payment_method' => 'required|in:cash,card,online',
             'discount' => 'nullable|numeric|min:0',
             'amount_received' => 'nullable|numeric|min:0',
             'change_return' => 'nullable|numeric|min:0',
         ]);
-        $sale->update($data);
+        $discount = $data['discount'] ?? 0;
+        $subtotal = 0;
+        $items = $request->items ?? [];
+        $manualProducts = $request->manual_products ?? [];
+        // Recreate inventory_sales and decrement stock
+        foreach ($items as $item) {
+            $inventory = \App\Models\Inventory::findOrFail($item['inventory_id']);
+            $quantity = $item['quantity'];
+            $amount = ($sale->sale_type === 'retail') ? $inventory->retail_amount : $inventory->wholesale_amount;
+            \App\Models\InventorySale::create([
+                'sale_id' => $sale->id,
+                'item_id' => $inventory->id,
+                'quantity' => $quantity,
+                'sale_type' => $sale->sale_type,
+                'amount' => $amount,
+                'total_amount' => $amount * $quantity,
+                'company_id' => $sale->company_id,
+            ]);
+            $inventory->decrement('unit', $quantity);
+            $subtotal += $amount * $quantity;
+        }
+        // Add manual products to subtotal
+        foreach ($manualProducts as $mp) {
+            $subtotal += $mp['selling_price'] * $mp['quantity'];
+        }
+        $subtotalAfterDiscount = $subtotal - $discount;
+        $taxField = 'tax_' . strtolower($data['payment_method']); // tax_cash, tax_card, tax_online
+        $tax_percentage = $company->$taxField ?? 0;
+        $tax_amount = ($tax_percentage / 100) * $subtotalAfterDiscount;
+        $total_amount = $subtotalAfterDiscount + $tax_amount;
+        // Update sale with recalculated values
+        $sale->update(array_merge($data, [
+            'subtotal' => $subtotalAfterDiscount,
+            'tax_percentage' => $tax_percentage,
+            'tax_amount' => $tax_amount,
+            'total_amount' => $total_amount,
+        ]));
+        // Log activity for update
+        $user = auth()->user();
+        \App\Models\ActivityLog::create([
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_role' => $user->role,
+            'action' => 'Updated Sale',
+            'details' => 'Sale Code: ' . $sale->sale_code . ', Customer: ' . ($sale->customer->name ?? $sale->customer_name) . ', Amount: ' . $sale->total_amount,
+        ]);
         return redirect()->route('sales.index')->with('success', 'Sale updated successfully.');
     }
 
     public function destroy($id)
     {
         $sale = Sale::findOrFail($id);
+        // Restore inventory units for each item in inventory_sales
+        $inventorySales = \App\Models\InventorySale::where('sale_id', $sale->id)->get();
+        foreach ($inventorySales as $invSale) {
+            $inventory = \App\Models\Inventory::find($invSale->item_id);
+            if ($inventory) {
+                $inventory->increment('unit', $invSale->quantity);
+            }
+        }
         // Delete related manual/external sales and purchases linked to this sale
         $externalSales = \App\Models\ExternalSale::where('parent_sale_id', $sale->id)->get();
         foreach ($externalSales as $extSale) {
@@ -430,7 +501,20 @@ class SaleController extends Controller
             }
             $extSale->delete();
         }
+        // Delete related inventory_sales records
+        \App\Models\InventorySale::where('sale_id', $sale->id)->delete();
+        // Log activity for delete
+        $user = auth()->user();
+        \App\Models\ActivityLog::create([
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_role' => $user->role,
+            'action' => 'Deleted Sale',
+            'details' => 'Sale Code: ' . $sale->sale_code . ', Customer: ' . ($sale->customer->name ?? $sale->customer_name) . ', Amount: ' . $sale->total_amount,
+        ]);
         $sale->delete();
         return redirect()->route('sales.index')->with('success', 'Sale deleted successfully.');
     }
+
+    // TODO: When updating a sale, adjust inventory units if items or quantities change (not implemented yet)
 }

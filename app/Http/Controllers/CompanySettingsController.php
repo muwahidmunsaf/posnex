@@ -11,6 +11,9 @@ class CompanySettingsController extends Controller
     public function edit()
     {
         $company = Auth::user()->company;
+        if (!$company) {
+            return redirect()->back()->with('error', 'No company found for your account.');
+        }
         return view('company.settings', compact('company'));
     }
 

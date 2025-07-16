@@ -64,7 +64,13 @@ class DashboardController extends Controller
         $paymentsReceivedQuery = \App\Models\Sale::where('company_id', $companyId);
         if ($from) $paymentsReceivedQuery->where('created_at', '>=', $from);
         if ($to) $paymentsReceivedQuery->where('created_at', '<=', $to);
-        $paymentsReceived = $paymentsReceivedQuery->sum('amount_received');
+        $paymentsReceived = $paymentsReceivedQuery->get()->sum(function($sale) {
+            if ($sale->sale_type === 'retail') {
+                return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
+            } else {
+                return $sale->amount_received ?? 0;
+            }
+        });
 
         // Pending Balance
         $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
@@ -199,7 +205,13 @@ class DashboardController extends Controller
         $paymentsReceivedQuery = \App\Models\Sale::where('company_id', $companyId);
         if ($from) $paymentsReceivedQuery->where('created_at', '>=', $from);
         if ($to) $paymentsReceivedQuery->where('created_at', '<=', $to);
-        $paymentsReceived = $paymentsReceivedQuery->sum('amount_received');
+        $paymentsReceived = $paymentsReceivedQuery->get()->sum(function($sale) {
+            if ($sale->sale_type === 'retail') {
+                return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
+            } else {
+                return $sale->amount_received ?? 0;
+            }
+        });
 
         // Pending Balance
         $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);

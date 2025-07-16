@@ -95,7 +95,9 @@
         <p><strong>Subtotal:</strong> {{ number_format($sale->subtotal, 2) }}</p>
         <p><strong>Tax ({{ $sale->tax_percentage }}%):</strong> {{ number_format($sale->tax_amount, 2) }}</p>
         <p><strong>Discount:</strong> {{ number_format($sale->discount, 2) }}</p>
-        <p><strong>Previous Balance:</strong> {{ (isset($previousOutstanding) && $previousOutstanding > 0) ? number_format($previousOutstanding, 2) : '0.00' }}</p>
+        @if($saleType !== 'retail')
+            <p><strong>Previous Balance:</strong> {{ (isset($previousOutstanding) && $previousOutstanding > 0) ? number_format($previousOutstanding, 2) : '0.00' }}</p>
+        @endif
         <h5><strong>Total:</strong> {{ number_format($sale->total_amount, 2) }}</h5>
         <p><strong>Payment Method:</strong> {{ ucfirst($sale->payment_method) }}</p>
         @if(isset($sale->amount_received))
@@ -114,7 +116,7 @@
     </div>
     <div class="text-center no-print mt-3">
         <button class="btn btn-primary btn-sm" onclick="window.print()">Print Receipt</button>
-        <a href="{{ route('sales.index') }}" class="btn btn-secondary btn-sm">Back</a>
+        <a href="{{ route('sales.create') }}" class="btn btn-secondary btn-sm">Back</a>
     </div>
     </body>
     </html>
