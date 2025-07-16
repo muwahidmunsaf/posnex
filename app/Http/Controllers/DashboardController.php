@@ -60,23 +60,40 @@ class DashboardController extends Controller
         $returnItemsCount = $returnsQuery->sum('quantity');
         $netSale = $totalSales - $totalReturns;
 
-        // Payments Received
-        $paymentsReceivedQuery = \App\Models\Sale::where('company_id', $companyId);
-        if ($from) $paymentsReceivedQuery->where('created_at', '>=', $from);
-        if ($to) $paymentsReceivedQuery->where('created_at', '<=', $to);
-        $paymentsReceived = $paymentsReceivedQuery->get()->sum(function($sale) {
+        // Payments Received (sales + direct payments)
+        $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId);
+        if ($from) $paymentsReceivedViaSales->where('created_at', '>=', $from);
+        if ($to) $paymentsReceivedViaSales->where('created_at', '<=', $to);
+        $paymentsReceivedViaSales = $paymentsReceivedViaSales->get()->sum(function($sale) {
             if ($sale->sale_type === 'retail') {
                 return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
             } else {
                 return $sale->amount_received ?? 0;
             }
         });
+        $paymentsReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
+        if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
+        if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
+        $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
 
-        // Pending Balance
-        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
-        if ($from) $pendingBalanceQuery->where('created_at', '>=', $from);
-        if ($to) $pendingBalanceQuery->where('created_at', '<=', $to);
-        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        // Total received via direct payments (for this company)
+        $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
+        if ($from) $totalReceivedViaPayments->where('date', '>=', $from);
+        if ($to) $totalReceivedViaPayments->where('date', '<=', $to);
+        $totalReceivedViaPayments = $totalReceivedViaPayments->sum('amount_paid');
+        // Total received via sales (wholesale/distributor)
+        $totalReceivedViaSales = \App\Models\Sale::where('company_id', $companyId)
+            ->whereIn('sale_type', ['wholesale', 'distributor']);
+        if ($from) $totalReceivedViaSales->where('created_at', '>=', $from);
+        if ($to) $totalReceivedViaSales->where('created_at', '<=', $to);
+        $totalReceivedViaSales = $totalReceivedViaSales->sum('amount_received');
+        // Pending balance (accounts receivable)
+        $pendingBalance = $totalSales - ($totalReceivedViaSales + $totalReceivedViaPayments);
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
@@ -202,23 +219,40 @@ class DashboardController extends Controller
         $returnItemsCount = $returnsQuery->sum('quantity');
         $netSale = $totalSales - $totalReturns;
 
-        // Payments Received
-        $paymentsReceivedQuery = \App\Models\Sale::where('company_id', $companyId);
-        if ($from) $paymentsReceivedQuery->where('created_at', '>=', $from);
-        if ($to) $paymentsReceivedQuery->where('created_at', '<=', $to);
-        $paymentsReceived = $paymentsReceivedQuery->get()->sum(function($sale) {
+        // Payments Received (sales + direct payments)
+        $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId);
+        if ($from) $paymentsReceivedViaSales->where('created_at', '>=', $from);
+        if ($to) $paymentsReceivedViaSales->where('created_at', '<=', $to);
+        $paymentsReceivedViaSales = $paymentsReceivedViaSales->get()->sum(function($sale) {
             if ($sale->sale_type === 'retail') {
                 return ($sale->amount_received ?? 0) - ($sale->change_return ?? 0);
             } else {
                 return $sale->amount_received ?? 0;
             }
         });
+        $paymentsReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
+        if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
+        if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
+        $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
 
-        // Pending Balance
-        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
-        if ($from) $pendingBalanceQuery->where('created_at', '>=', $from);
-        if ($to) $pendingBalanceQuery->where('created_at', '<=', $to);
-        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        // Total received via direct payments (for this company)
+        $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
+        if ($from) $totalReceivedViaPayments->where('date', '>=', $from);
+        if ($to) $totalReceivedViaPayments->where('date', '<=', $to);
+        $totalReceivedViaPayments = $totalReceivedViaPayments->sum('amount_paid');
+        // Total received via sales (wholesale/distributor)
+        $totalReceivedViaSales = \App\Models\Sale::where('company_id', $companyId)
+            ->whereIn('sale_type', ['wholesale', 'distributor']);
+        if ($from) $totalReceivedViaSales->where('created_at', '>=', $from);
+        if ($to) $totalReceivedViaSales->where('created_at', '<=', $to);
+        $totalReceivedViaSales = $totalReceivedViaSales->sum('amount_received');
+        // Pending balance (accounts receivable)
+        $pendingBalance = $totalSales - ($totalReceivedViaSales + $totalReceivedViaPayments);
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);

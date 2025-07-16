@@ -132,11 +132,10 @@ class ReportController extends Controller
         $from = $request->input('from') ? Carbon::parse($request->input('from'))->startOfDay() : now()->startOfMonth();
         $to = $request->input('to') ? Carbon::parse($request->input('to'))->endOfDay() : now()->endOfDay();
 
-        // Purchases
-        $totalPurchase = PurchaseItem::whereHas('purchase', function ($q) use ($companyId, $from, $to) {
-            $q->where('company_id', $companyId)
-                ->whereBetween('created_at', [$from, $to]);
-        })->sum(DB::raw('purchase_amount'));
+        // Purchases (in PKR)
+        $totalPurchase = \App\Models\Purchase::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('pkr_amount');
 
         // Sales
         $totalSale = Sale::where('company_id', $companyId)
@@ -161,8 +160,8 @@ class ReportController extends Controller
 
         $netSale = $totalSale - $totalReturns;
 
-        // Payments received (all sales in range)
-        $paymentsReceived = \App\Models\Sale::where('company_id', $companyId)
+        // Payments received (sales + direct payments)
+        $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
             ->get()
             ->sum(function($sale) {
@@ -172,12 +171,22 @@ class ReportController extends Controller
                     return $sale->amount_received ?? 0;
                 }
             });
+        $paymentsReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        })->whereBetween('date', [$from, $to])->sum('amount_paid');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
 
-        // Pending balance (wholesale + distributor sales in range)
-        $pendingBalance = \App\Models\Sale::where('company_id', $companyId)
+        // Total received via direct payments (for this company)
+        $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        })->whereBetween('date', [$from, $to])->sum('amount_paid');
+        // Total received via sales (wholesale/distributor)
+        $totalReceivedViaSales = \App\Models\Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
             ->whereIn('sale_type', ['wholesale', 'distributor'])
-            ->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+            ->sum('amount_received');
+        // Pending balance (accounts receivable)
+        $pendingBalance = $totalSale - ($totalReceivedViaSales + $totalReceivedViaPayments);
 
         // Accounts Payable (PKR)
         $totalPurchasesPKR = \App\Models\Purchase::where('company_id', $companyId)
