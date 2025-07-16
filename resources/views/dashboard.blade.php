@@ -305,6 +305,7 @@
                 },
                 options: {
                     responsive: true,
+                    layout: { padding: { top: 40 } }, // Add top padding for value labels
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -322,7 +323,8 @@
                         },
                         datalabels: {
                             anchor: 'end',
-                            align: 'end',
+                            align: 'end', // End of each bar
+                            offset: 8, // Add space so label is not hidden
                             color: '#222',
                             font: { weight: 'bold', size: 13 },
                             formatter: function(value) {
