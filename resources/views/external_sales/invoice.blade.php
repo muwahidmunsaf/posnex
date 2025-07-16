@@ -103,26 +103,13 @@
         </tbody>
     </table>
     </div>
-    <div class="totals-block" style="float: right; margin: 18px 32px 0 0;">
-        <table>
-            <tr>
-                <td class="label">Sub Total</td>
-                <td class="value">{{ number_format($sale->sale_amount, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="label">Tax ({{ $sale->tax_amount ?? 0 }})</td>
-                <td class="value">{{ number_format($sale->tax_amount ?? 0, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="label">Payment Method</td>
-                <td class="value">{{ ucfirst($sale->payment_method) }}</td>
-            </tr>
-            <tr class="grand">
-                <td class="grand">Grand Total</td>
-                <td class="grand">{{ number_format($sale->total_amount, 2) }}</td>
-            </tr>
-        </table>
+    <!-- Watermark -->
+    @if(auth()->user()->company->logo ?? false)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . auth()->user()->company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
     </div>
+    @endif
+    <!-- End Watermark -->
     <div style="clear:both;"></div>
     <div class="terms">
         <b>Terms & Conditions:</b> This is a computer-generated invoice and does not require a signature.

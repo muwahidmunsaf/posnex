@@ -83,18 +83,27 @@
         <span style="font-size:2rem; font-weight:bold; color:#b71c1c; letter-spacing:1px;">Sales Invoice</span>
             </div>
     <div class="to-block" style="display: flex; justify-content: space-between; gap: 40px; margin-bottom: 16px;">
+        @if($sale->sale_type === 'wholesale')
+        <div style="flex:1;">
+            <b style="font-size:1.1em;">To (Wholesale Customer)</b><br>
+            <span class="label">Name:</span> <span class="value">{{ $customer->name ?? '-' }}</span><br>
+            <span class="label">Phone:</span> <span class="value">{{ $customer->cel_no ?? '-' }}</span><br>
+            <span class="label">Address:</span> <span class="value">{{ $customer->address ?? '-' }}</span><br>
+        </div>
+        @elseif($sale->sale_type === 'distributor')
         <div style="flex:1;">
             <b style="font-size:1.1em;">To (Shopkeeper)</b><br>
             <span class="label">Name:</span> <span class="value">{{ $sale->shopkeeper->name ?? '-' }}</span><br>
             <span class="label">Phone:</span> <span class="value">{{ $sale->shopkeeper->cel_no ?? '-' }}</span><br>
             <span class="label">Address:</span> <span class="value">{{ $sale->shopkeeper->address ?? '-' }}</span><br>
-            </div>
+        </div>
         <div style="flex:1;">
             <b style="font-size:1.1em;">From (Distributor)</b><br>
             <span class="label">Name:</span> <span class="value">{{ $sale->distributor->name ?? '-' }}</span><br>
             <span class="label">Phone:</span> <span class="value">{{ $sale->distributor->cel_no ?? '-' }}</span><br>
             <span class="label">Company:</span> <span class="value">{{ $company->name ?? (auth()->user()->company->name ?? '-') }}</span><br>
         </div>
+        @endif
     </div>
     <div class="table-container">
         <table>
@@ -180,6 +189,11 @@
         <b>Terms & Conditions:</b> This is a computer-generated invoice and does not require a signature.
     </div>
     <div class="thankyou">Thank you for your business!</div>
+    @if(($company->logo ?? false) || (auth()->user()->company->logo ?? false))
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . ($company->logo ?? auth()->user()->company->logo)) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
     <div class="no-print" style="text-align:center; margin-bottom:32px;">
         <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;">Print</button>
     </div>
