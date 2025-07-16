@@ -41,7 +41,14 @@ class DashboardController extends Controller
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
         if ($from) $totalPurchasesPKRQuery->where('created_at', '>=', $from);
         if ($to) $totalPurchasesPKRQuery->where('created_at', '<=', $to);
-        $totalPurchases = $totalPurchasesPKRQuery->sum('pkr_amount');
+        $totalPurchasesPKR = $totalPurchasesPKRQuery->sum('pkr_amount');
+        // External Purchases
+        $totalExternalPurchases = \App\Models\ExternalPurchase::where('company_id', $companyId);
+        if ($from) $totalExternalPurchases->where('created_at', '>=', $from);
+        if ($to) $totalExternalPurchases->where('created_at', '<=', $to);
+        $totalExternalPurchases = $totalExternalPurchases->sum('purchase_amount');
+        // Total Purchases (internal PKR + external)
+        $totalPurchases = $totalPurchasesPKR + $totalExternalPurchases;
 
         // Returns
         $returnsQuery = \App\Models\ReturnTransaction::whereHas('sale', function($q) use ($companyId, $from, $to) {
@@ -85,8 +92,11 @@ class DashboardController extends Controller
         if ($from) $totalReceivedViaSales->where('created_at', '>=', $from);
         if ($to) $totalReceivedViaSales->where('created_at', '<=', $to);
         $totalReceivedViaSales = $totalReceivedViaSales->sum('amount_received');
-        // Pending balance (accounts receivable)
-        $pendingBalance = $totalSales - ($totalReceivedViaSales + $totalReceivedViaPayments);
+        // Pending balance (wholesale/distributor only)
+        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
+        if ($from) $pendingBalanceQuery->where('created_at', '>=', $from);
+        if ($to) $pendingBalanceQuery->where('created_at', '<=', $to);
+        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
@@ -148,13 +158,12 @@ class DashboardController extends Controller
             'pendingBalance',
             'totalPurchases',
             'totalPurchasesPKR',
+            'totalExternalPurchases',
             'totalExpenses',
             'inventoryCount',
             'accountsPayablePKR',
             'totalInternalSales',
             'totalExternalSales',
-            'totalInternalPurchases',
-            'totalExternalPurchases',
             'suppliersCount',
             'customersCount',
             'shopkeepersCount',
@@ -304,8 +313,6 @@ class DashboardController extends Controller
             'accountsPayablePKR',
             'totalInternalSales',
             'totalExternalSales',
-            'totalInternalPurchases',
-            'totalExternalPurchases',
             'suppliersCount',
             'customersCount',
             'shopkeepersCount',

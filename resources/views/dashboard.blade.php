@@ -192,7 +192,7 @@
                     <div class="card-body">
                         <div class="icon text-danger"><i class="bi bi-bag-check"></i></div>
                         <div class="label">Total Purchases (PKR)</div>
-                        <div class="value">Rs. {{ number_format($totalPurchasesPKR, 2) }}</div>
+                        <div class="value">Rs. {{ number_format($totalPurchases, 2) }}</div>
                     </div>
                 </a>
                         </div>
@@ -285,7 +285,7 @@
             const chartData = [
                 {{ $totalInternalSales }},
                 {{ $totalExternalSales }},
-                {{ $totalInternalPurchases }},
+                {{ $totalPurchasesPKR }},
                 {{ $totalExternalPurchases }},
                 {{ $totalExpenses }}
             ];
