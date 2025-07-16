@@ -80,6 +80,14 @@
                 <td class="label" style="font-weight:bold; color:#b71c1c; border: 1.5px solid #b71c1c; padding:8px;">Note:</td>
                 <td class="value" style="border: 1.5px solid #b71c1c; padding:8px;">{{ $payment->note }}</td>
             </tr>
+            @if($supplier->country != 'Pakistan' && $payment->currency_code && strtoupper($payment->currency_code) != 'PKR')
+            <tr style="border: 1.5px solid #b71c1c;">
+                <td class="label" style="font-weight:bold; color:#b71c1c; border: 1.5px solid #b71c1c; padding:8px;">Conversion Rate:</td>
+                <td class="value" style="border: 1.5px solid #b71c1c; padding:8px;">
+                    1 {{ $payment->currency_code }} = {{ number_format($payment->exchange_rate_to_pkr, 4) }} PKR
+                </td>
+            </tr>
+            @endif
             <tr style="border: 1.5px solid #b71c1c;">
                 <td class="label" style="font-weight:bold; color:#b71c1c; border: 1.5px solid #b71c1c; padding:8px;">Remaining Balance:</td>
                 <td class="value" style="border: 1.5px solid #b71c1c; padding:8px;">
@@ -96,6 +104,13 @@
                 </td>
             </tr>
         </table>
+        @if(true)
+        <div style="position:relative; width:100%;">
+            <div style="position:absolute; right:48px; top:32px; transform:rotate(-10deg); z-index:10;">
+                <span style="display:inline-block; padding:10px 38px; font-size:1.7rem; color:#43a047; background:transparent; border-radius:12px; font-weight:800; letter-spacing:7px; opacity:0.95; border:3px solid #43a047;">PAID</span>
+            </div>
+        </div>
+        @endif
         <div class="terms" style="color:#b71c1c; font-size:0.98em; margin-top:24px;">
             <b>Terms & Conditions:</b> This is a computer-generated invoice and does not require a signature.
         </div>
@@ -104,5 +119,10 @@
     <div class="no-print" style="text-align:center; margin-bottom:32px;">
         <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;">Print</button>
     </div>
+    @if($supplier->company && $supplier->company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $supplier->company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
 </body>
 </html> 
