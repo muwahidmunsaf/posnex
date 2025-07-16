@@ -625,6 +625,51 @@ $(document).ready(function() {
     $('#payment_method').on('change', updateTaxPercentage);
     // Initial set
     updateTaxPercentage();
+
+    // Reset product search filter when modal opens
+    var itemModal = document.getElementById('itemModal');
+    if (itemModal) {
+        itemModal.addEventListener('show.bs.modal', function() {
+            var search = document.getElementById('item-search');
+            var items = document.querySelectorAll('#item-list button[data-id]');
+            if (search) search.value = '';
+            items.forEach(function(btn) { btn.style.display = ''; });
         });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Product search with DOM removal/restore ---
+    var itemList = document.getElementById('item-list');
+    var allButtons = [];
+    if (itemList) {
+        allButtons = Array.from(itemList.querySelectorAll('button[data-id]'));
+    }
+    var itemSearch = document.getElementById('item-search');
+    if (itemSearch && itemList) {
+        itemSearch.addEventListener('input', function() {
+            var val = this.value.toLowerCase();
+            // Remove all buttons
+            while (itemList.firstChild) itemList.removeChild(itemList.firstChild);
+            // Add only matching buttons
+            allButtons.forEach(function(btn) {
+                var text = btn.textContent.toLowerCase();
+                if (text.includes(val)) {
+                    itemList.appendChild(btn);
+                }
+            });
+        });
+        // Reset filter on modal open
+        var itemModal = document.getElementById('itemModal');
+        if (itemModal) {
+            itemModal.addEventListener('show.bs.modal', function() {
+                itemSearch.value = '';
+                // Restore all buttons
+                while (itemList.firstChild) itemList.removeChild(itemList.firstChild);
+                allButtons.forEach(function(btn) { itemList.appendChild(btn); });
+            });
+        }
+    }
+});
     </script>
 @endsection
+
