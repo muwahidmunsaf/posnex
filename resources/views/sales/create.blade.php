@@ -414,8 +414,10 @@ $(document).ready(function() {
     $('#wholesale-customer-search').on('keyup', function() {
         var val = $(this).val().toLowerCase();
         $('#wholesale-customer-list .list-group-item').each(function() {
-            var name = $(this).data('name').toLowerCase();
-            $(this).toggle(name.includes(val));
+            var name = ($(this).data('name') || '').toString().toLowerCase();
+            var id = ($(this).data('id') || '').toString().toLowerCase();
+            var text = name + ' ' + id;
+            $(this).toggle(text.includes(val));
         });
     });
     $('#wholesale-customer-list .list-group-item').on('click', function() {
@@ -666,6 +668,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Restore all buttons
                 while (itemList.firstChild) itemList.removeChild(itemList.firstChild);
                 allButtons.forEach(function(btn) { itemList.appendChild(btn); });
+            });
+        }
+    }
+
+    // --- Wholesaler search with DOM removal/restore ---
+    var wholesaleList = document.getElementById('wholesale-customer-list');
+    var allWholesaleButtons = [];
+    if (wholesaleList) {
+        allWholesaleButtons = Array.from(wholesaleList.querySelectorAll('button[data-id]'));
+    }
+    var wholesaleSearch = document.getElementById('wholesale-customer-search');
+    if (wholesaleSearch && wholesaleList) {
+        wholesaleSearch.addEventListener('input', function() {
+            var val = this.value.toLowerCase();
+            while (wholesaleList.firstChild) wholesaleList.removeChild(wholesaleList.firstChild);
+            allWholesaleButtons.forEach(function(btn) {
+                var text = btn.textContent.toLowerCase();
+                if (text.includes(val)) {
+                    wholesaleList.appendChild(btn);
+                }
+            });
+        });
+        var wholesaleModal = document.getElementById('wholesaleModal');
+        if (wholesaleModal) {
+            wholesaleModal.addEventListener('show.bs.modal', function() {
+                wholesaleSearch.value = '';
+                while (wholesaleList.firstChild) wholesaleList.removeChild(wholesaleList.firstChild);
+                allWholesaleButtons.forEach(function(btn) { wholesaleList.appendChild(btn); });
+            });
+        }
+    }
+
+    // --- Distributor search with DOM removal/restore ---
+    var distributorList = document.getElementById('distributorList');
+    var allDistributorItems = [];
+    if (distributorList) {
+        allDistributorItems = Array.from(distributorList.querySelectorAll('.distributor-item'));
+    }
+    var distributorSearch = document.getElementById('distributorModalSearch');
+    if (distributorSearch && distributorList) {
+        distributorSearch.addEventListener('input', function() {
+            var val = this.value.toLowerCase();
+            while (distributorList.firstChild) distributorList.removeChild(distributorList.firstChild);
+            allDistributorItems.forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                if (text.includes(val)) {
+                    distributorList.appendChild(item);
+                }
+            });
+        });
+        var distributorModal = document.getElementById('distributorModal');
+        if (distributorModal) {
+            distributorModal.addEventListener('show.bs.modal', function() {
+                distributorSearch.value = '';
+                while (distributorList.firstChild) distributorList.removeChild(distributorList.firstChild);
+                allDistributorItems.forEach(function(item) { distributorList.appendChild(item); });
+            });
+        }
+    }
+
+    // --- Shopkeeper search with DOM removal/restore ---
+    var shopkeeperList = document.getElementById('shopkeeperList');
+    var allShopkeeperItems = [];
+    if (shopkeeperList) {
+        allShopkeeperItems = Array.from(shopkeeperList.querySelectorAll('.shopkeeper-item'));
+    }
+    var shopkeeperSearch = document.getElementById('shopkeeperModalSearch');
+    if (shopkeeperSearch && shopkeeperList) {
+        shopkeeperSearch.addEventListener('input', function() {
+            var val = this.value.toLowerCase();
+            while (shopkeeperList.firstChild) shopkeeperList.removeChild(shopkeeperList.firstChild);
+            allShopkeeperItems.forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                if (text.includes(val)) {
+                    shopkeeperList.appendChild(item);
+                }
+            });
+        });
+        var shopkeeperModal = document.getElementById('shopkeeperModal');
+        if (shopkeeperModal) {
+            shopkeeperModal.addEventListener('show.bs.modal', function() {
+                shopkeeperSearch.value = '';
+                while (shopkeeperList.firstChild) shopkeeperList.removeChild(shopkeeperList.firstChild);
+                allShopkeeperItems.forEach(function(item) { shopkeeperList.appendChild(item); });
             });
         }
     }
