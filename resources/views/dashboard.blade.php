@@ -36,6 +36,7 @@
                 </div>
                 <div class="modal-footer">
                   <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Filter</button>
+                  <button type="button" class="btn btn-secondary ms-2" id="clear-date-filter">Clear Filter</button>
                 </div>
               </form>
             </div>
@@ -349,6 +350,18 @@
             // Custom legend
             const legendLabels = chartLabels.map((label, i) => `<span style="display:inline-block;margin-right:18px;"><span style="display:inline-block;width:14px;height:14px;background:${chartColors[i]};border-radius:3px;margin-right:6px;"></span>${label}</span>`);
             document.getElementById('financeChartLegend').innerHTML = legendLabels.join('');
+        </script>
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+    var clearBtn = document.getElementById('clear-date-filter');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            document.getElementById('from').value = '';
+            document.getElementById('to').value = '';
+            window.location.href = window.location.pathname;
+        });
+    }
+});
         </script>
     @endpush
 @endsection
