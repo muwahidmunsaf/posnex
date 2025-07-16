@@ -37,18 +37,11 @@ class DashboardController extends Controller
         // $totalSales = $totalInternalSales + $totalExternalSales; // Remove this line to avoid double-counting
         $totalSales = $totalInternalSales; // Use only internal sales, since finance report already includes both
 
-        // Purchases
-        $internalPurchasesQuery = \App\Models\PurchaseItem::whereHas('purchase', function ($q) use ($companyId, $from, $to) {
-            $q->where('company_id', $companyId);
-            if ($from) $q->where('created_at', '>=', $from);
-            if ($to) $q->where('created_at', '<=', $to);
-        });
-        $externalPurchasesQuery = \App\Models\ExternalPurchase::where('company_id', $companyId);
-        if ($from) $externalPurchasesQuery->where('created_at', '>=', $from);
-        if ($to) $externalPurchasesQuery->where('created_at', '<=', $to);
-        $totalInternalPurchases = $internalPurchasesQuery->sum('purchase_amount');
-        $totalExternalPurchases = $externalPurchasesQuery->sum('purchase_amount');
-        $totalPurchases = $totalInternalPurchases + $totalExternalPurchases;
+        // Purchases (use PKR-converted value)
+        $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
+        if ($from) $totalPurchasesPKRQuery->where('created_at', '>=', $from);
+        if ($to) $totalPurchasesPKRQuery->where('created_at', '<=', $to);
+        $totalPurchases = $totalPurchasesPKRQuery->sum('pkr_amount');
 
         // Returns
         $returnsQuery = \App\Models\ReturnTransaction::whereHas('sale', function($q) use ($companyId, $from, $to) {
@@ -196,18 +189,11 @@ class DashboardController extends Controller
         // $totalSales = $totalInternalSales + $totalExternalSales; // Remove this line to avoid double-counting
         $totalSales = $totalInternalSales; // Use only internal sales, since finance report already includes both
 
-        // Purchases
-        $internalPurchasesQuery = \App\Models\PurchaseItem::whereHas('purchase', function ($q) use ($companyId, $from, $to) {
-            $q->where('company_id', $companyId);
-            if ($from) $q->where('created_at', '>=', $from);
-            if ($to) $q->where('created_at', '<=', $to);
-        });
-        $externalPurchasesQuery = \App\Models\ExternalPurchase::where('company_id', $companyId);
-        if ($from) $externalPurchasesQuery->where('created_at', '>=', $from);
-        if ($to) $externalPurchasesQuery->where('created_at', '<=', $to);
-        $totalInternalPurchases = $internalPurchasesQuery->sum('purchase_amount');
-        $totalExternalPurchases = $externalPurchasesQuery->sum('purchase_amount');
-        $totalPurchases = $totalInternalPurchases + $totalExternalPurchases;
+        // Purchases (use PKR-converted value)
+        $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
+        if ($from) $totalPurchasesPKRQuery->where('created_at', '>=', $from);
+        if ($to) $totalPurchasesPKRQuery->where('created_at', '<=', $to);
+        $totalPurchases = $totalPurchasesPKRQuery->sum('pkr_amount');
 
         // Returns
         $returnsQuery = \App\Models\ReturnTransaction::whereHas('sale', function($q) use ($companyId, $from, $to) {
