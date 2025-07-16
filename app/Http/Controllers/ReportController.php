@@ -185,8 +185,11 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$from, $to])
             ->whereIn('sale_type', ['wholesale', 'distributor'])
             ->sum('amount_received');
-        // Pending balance (accounts receivable)
-        $pendingBalance = $totalSale - ($totalReceivedViaSales + $totalReceivedViaPayments);
+        // Pending balance (wholesale/distributor only)
+        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereIn('sale_type', ['wholesale', 'distributor']);
+        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
 
         // Accounts Payable (PKR)
         $totalPurchasesPKR = \App\Models\Purchase::where('company_id', $companyId)
