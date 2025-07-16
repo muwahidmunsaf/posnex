@@ -72,7 +72,7 @@
                 @endif
                 </span>
                 @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
-                    <br><span class="summary-pkr">Rs {{ number_format($totalPurchase * $currentRate, 2) }} (PKR, current rate)</span>
+                    <br><span class="summary-pkr">Rs {{ number_format($purchases->sum('pkr_amount'), 2) }} (PKR)</span>
                 @endif
             </div>
         </div>
@@ -87,7 +87,7 @@
                 @endif
                 </span>
                 @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
-                    <br><span class="summary-pkr">Rs {{ number_format($totalPaid * $currentRate, 2) }} (PKR, current rate)</span>
+                    <br><span class="summary-pkr">Rs {{ number_format($payments->sum('pkr_amount'), 2) }} (PKR)</span>
                 @endif
             </div>
         </div>
@@ -102,7 +102,7 @@
                 @endif
                 </span>
                 @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
-                    <br><span class="summary-pkr">Rs {{ number_format($balance * $currentRate, 2) }} (PKR, current rate)</span>
+                    <br><span class="summary-pkr">Rs {{ number_format($purchases->sum('pkr_amount') - $payments->sum('pkr_amount'), 2) }} (PKR)</span>
                 @endif
             </div>
         </div>
@@ -140,11 +140,7 @@
                                         @endif
                                         </span>
                                         @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
-                                            <span class="amount-pkr">Rs {{ number_format($purchase->total_amount * $currentRate, 2) }} (PKR, current rate)
-                                            @if($purchase->pkr_amount && $purchase->exchange_rate_to_pkr)
-                                                <br>(At time: Rs {{ number_format($purchase->pkr_amount, 2) }} @ {{ number_format($purchase->exchange_rate_to_pkr, 4) }})
-                                            @endif
-                                            </span>
+                                            <span class="amount-pkr">Rs {{ number_format($purchase->pkr_amount, 2) }} (PKR @ {{ number_format($purchase->exchange_rate_to_pkr, 4) }})</span>
                                         @endif
                                     </td>
                                     <td class="action-icons">
@@ -191,11 +187,7 @@
                                         @endif
                                         </span>
                                         @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
-                                            <span class="amount-pkr">Rs {{ number_format($payment->amount * $currentRate, 2) }} (PKR, current rate)
-                                            @if($payment->pkr_amount && $payment->exchange_rate_to_pkr)
-                                                <br>(At time: Rs {{ number_format($payment->pkr_amount, 2) }} @ {{ number_format($payment->exchange_rate_to_pkr, 4) }})
-                                            @endif
-                                            </span>
+                                            <span class="amount-pkr">Rs {{ number_format($payment->pkr_amount, 2) }} (PKR @ {{ number_format($payment->exchange_rate_to_pkr, 4) }})</span>
                                         @endif
                                     </td>
                                     <td>{{ $payment->payment_method }}</td>
