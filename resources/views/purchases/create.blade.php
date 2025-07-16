@@ -28,6 +28,13 @@
                 </select>
             </div>
         </div>
+        <div class="mb-3 row" id="exchange-rate-row" style="display:none;">
+            <label for="exchange_rate_to_pkr" class="col-sm-2 col-form-label">Exchange Rate to PKR</label>
+            <div class="col-sm-4">
+                <input type="number" step="0.00001" min="0" id="exchange_rate_to_pkr" name="exchange_rate_to_pkr" class="form-control">
+                <small class="text-muted">Enter the rate at the time of purchase. 1 <span id="currency-code-label">CUR</span> = ? PKR</small>
+            </div>
+        </div>
 
         <hr>
 
@@ -183,7 +190,45 @@ document.getElementById('supplier_id').addEventListener('change', function() {
     });
 });
 
-document.addEventListener('DOMContentLoaded', updateLabelsVisibility);
+// --- Show/hide exchange rate field based on supplier currency and fetch rate ---
+function updateExchangeRateField() {
+    const supplierId = document.getElementById('supplier_id').value;
+    const currency = supplierCurrencies[supplierId] || { symbol: '', code: '' };
+    const row = document.getElementById('exchange-rate-row');
+    const codeLabel = document.getElementById('currency-code-label');
+    const rateInput = document.getElementById('exchange_rate_to_pkr');
+    if (currency.code && currency.code !== 'PKR') {
+        row.style.display = '';
+        codeLabel.textContent = currency.code;
+        rateInput.value = '';
+        rateInput.placeholder = 'Fetching...';
+        rateInput.disabled = true;
+        // Fetch rate from backend
+        fetch(`/api/exchange-rate/${currency.code}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.rate) {
+                    rateInput.value = data.rate;
+                } else {
+                    rateInput.value = '';
+                }
+                rateInput.placeholder = '';
+                rateInput.disabled = false;
+            })
+            .catch(() => {
+                rateInput.value = '';
+                rateInput.placeholder = '';
+                rateInput.disabled = false;
+            });
+    } else {
+        row.style.display = 'none';
+        codeLabel.textContent = '';
+        rateInput.value = 1;
+        rateInput.disabled = false;
+    }
+}
+document.getElementById('supplier_id').addEventListener('change', updateExchangeRateField);
+document.addEventListener('DOMContentLoaded', updateExchangeRateField);
 </script>
 @endpush
 @endsection

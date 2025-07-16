@@ -20,7 +20,7 @@ use App\Http\Controllers\ShopkeeperController;
 use App\Http\Controllers\DistributorPaymentController;
 use App\Http\Controllers\DistributorProductController;
 use App\Http\Controllers\ShopkeeperTransactionController;
-
+use App\Models\Supplier;
 
 
 
@@ -231,5 +231,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('supplier-payments', App\Http\Controllers\SupplierPaymentController::class);
     Route::resource('inventory-sales', App\Http\Controllers\InventorySaleController::class);
     Route::resource('external-purchases', App\Http\Controllers\ExternalPurchaseController::class);
+});
+
+Route::get('/api/exchange-rate/{currency}', function($currency) {
+    $rate = Supplier::getCurrencyRateToPKR($currency);
+    return response()->json(['rate' => $rate]);
 });
 

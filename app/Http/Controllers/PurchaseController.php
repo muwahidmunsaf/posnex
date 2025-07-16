@@ -88,10 +88,13 @@ class PurchaseController extends Controller
             // Define supplier, currencyCode, and exchangeRate before use
             $supplier = Supplier::findOrFail($request->supplier_id);
             $currencyCode = $supplier->currency['code'] ?? 'USD';
-            $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            $exchangeRate = $request->exchange_rate_to_pkr;
+            if (!$exchangeRate || $exchangeRate <= 0) {
+                $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            }
+            $exchangeRate = (float) $exchangeRate;
             Log::debug('PurchaseController: currencyCode', ['currencyCode' => $currencyCode]);
             Log::debug('PurchaseController: exchangeRate', ['exchangeRate' => $exchangeRate, 'type' => gettype($exchangeRate)]);
-            $exchangeRate = (float) $exchangeRate;
 
             $items = collect($request->items)->map(function($item) {
                 $item['quantity'] = (int) $item['quantity'];
@@ -188,10 +191,13 @@ class PurchaseController extends Controller
             // In update method, do the same: move $supplier, $currencyCode, $exchangeRate before any use
             $supplier = Supplier::findOrFail($request->supplier_id);
             $currencyCode = $supplier->currency['code'] ?? 'USD';
-            $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            $exchangeRate = $request->exchange_rate_to_pkr;
+            if (!$exchangeRate || $exchangeRate <= 0) {
+                $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            }
+            $exchangeRate = (float) $exchangeRate;
             Log::debug('PurchaseController (update): currencyCode', ['currencyCode' => $currencyCode]);
             Log::debug('PurchaseController (update): exchangeRate', ['exchangeRate' => $exchangeRate, 'type' => gettype($exchangeRate)]);
-            $exchangeRate = (float) $exchangeRate;
 
             $items = collect($request->items)->map(function($item) {
                 $item['quantity'] = (int) $item['quantity'];
