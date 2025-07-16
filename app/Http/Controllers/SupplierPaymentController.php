@@ -51,8 +51,19 @@ class SupplierPaymentController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'amount' => 'required|numeric',
             'payment_date' => 'required|date',
+            'currency_code' => 'nullable|string',
+            'exchange_rate_to_pkr' => 'nullable|numeric',
         ]);
         $data = $request->all();
+        // Calculate PKR amount
+        $currency = $data['currency_code'] ?? 'PKR';
+        if (strtoupper($currency) === 'PKR' || empty($currency)) {
+            $data['pkr_amount'] = $data['amount'];
+            $data['exchange_rate_to_pkr'] = 1;
+        } else {
+            $rate = isset($data['exchange_rate_to_pkr']) && $data['exchange_rate_to_pkr'] > 0 ? $data['exchange_rate_to_pkr'] : 1;
+            $data['pkr_amount'] = $data['amount'] * $rate;
+        }
         SupplierPayment::create($data);
         return redirect()->route('supplier-payments.index')->with('success', 'Supplier payment created successfully.');
     }
@@ -88,9 +99,21 @@ class SupplierPaymentController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'amount' => 'required|numeric',
             'payment_date' => 'required|date',
+            'currency_code' => 'nullable|string',
+            'exchange_rate_to_pkr' => 'nullable|numeric',
         ]);
         $payment = SupplierPayment::findOrFail($id);
-        $payment->update($request->all());
+        $data = $request->all();
+        // Calculate PKR amount
+        $currency = $data['currency_code'] ?? 'PKR';
+        if (strtoupper($currency) === 'PKR' || empty($currency)) {
+            $data['pkr_amount'] = $data['amount'];
+            $data['exchange_rate_to_pkr'] = 1;
+        } else {
+            $rate = isset($data['exchange_rate_to_pkr']) && $data['exchange_rate_to_pkr'] > 0 ? $data['exchange_rate_to_pkr'] : 1;
+            $data['pkr_amount'] = $data['amount'] * $rate;
+        }
+        $payment->update($data);
         return redirect()->route('supplier-payments.index')->with('success', 'Supplier payment updated successfully.');
     }
 

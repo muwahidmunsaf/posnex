@@ -191,8 +191,8 @@
                 <a href="{{ route('purchase.index') }}" class="card dashboard-card text-center border-0 text-decoration-none" style="background: linear-gradient(135deg, #ffeaea 60%, #ffbaba 100%);">
                     <div class="card-body">
                         <div class="icon text-danger"><i class="bi bi-bag-check"></i></div>
-                        <div class="label">Total Purchases</div>
-                        <div class="value">Rs. {{ number_format($totalPurchases, 2) }}</div>
+                        <div class="label">Total Purchases (PKR)</div>
+                        <div class="value">Rs. {{ number_format($totalPurchasesPKR, 2) }}</div>
                     </div>
                 </a>
                         </div>

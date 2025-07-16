@@ -137,6 +137,7 @@ class DashboardController extends Controller
             'paymentsReceived',
             'pendingBalance',
             'totalPurchases',
+            'totalPurchasesPKR',
             'totalExpenses',
             'inventoryCount',
             'accountsPayablePKR',

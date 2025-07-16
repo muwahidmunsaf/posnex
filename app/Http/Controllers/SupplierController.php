@@ -158,29 +158,18 @@ class SupplierController extends Controller
             'payment_date' => 'required|date',
             'payment_method' => 'nullable|string|max:255',
             'note' => 'nullable|string|max:255',
+            'currency_code' => 'nullable|string',
+            'exchange_rate_to_pkr' => 'nullable|numeric',
         ]);
         $supplier = \App\Models\Supplier::findOrFail($supplierId);
-        $currencyCode = $supplier->currency['code'] ?? 'USD';
         $amount = $request->amount;
-        $exchangeRate = 1.0;
-        $pkrAmount = $amount;
-        if ($currencyCode !== 'PKR') {
-            try {
-                $response = Http::get("https://api.exchangerate.host/latest", [
-                    'base' => $currencyCode,
-                    'symbols' => 'PKR',
-                ]);
-                if ($response->ok() && isset($response['rates']['PKR'])) {
-                    $exchangeRate = $response['rates']['PKR'];
-                    $pkrAmount = $amount * $exchangeRate;
-                } else {
-                    Log::error('Exchange rate API error (payment): ' . $response->body());
-                }
-            } catch (\Exception $e) {
-                Log::error('Exchange rate API exception (payment): ' . $e->getMessage());
-                $exchangeRate = 1.0;
-                $pkrAmount = $amount;
-            }
+        $currencyCode = $request->currency_code ?? ($supplier->currency['code'] ?? 'PKR');
+        $exchangeRate = $request->exchange_rate_to_pkr ?? 1.0;
+        if (strtoupper($currencyCode) === 'PKR' || empty($currencyCode)) {
+            $pkrAmount = $amount;
+            $exchangeRate = 1.0;
+        } else {
+            $pkrAmount = $amount * $exchangeRate;
         }
         \App\Models\SupplierPayment::create([
             'supplier_id' => $supplierId,

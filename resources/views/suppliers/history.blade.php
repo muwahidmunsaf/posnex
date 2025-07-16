@@ -240,6 +240,17 @@
                 <label>Note</label>
                 <input type="text" name="note" class="form-control">
             </div>
+            @if($supplier->country != 'Pakistan' && $supplier->currency['code'] != 'PKR')
+            <div class="mb-2">
+                <label>Currency</label>
+                <input type="text" name="currency_code" class="form-control" value="{{ $supplier->currency['code'] }}" readonly>
+            </div>
+            <div class="mb-2">
+                <label>Exchange Rate to PKR (at time of payment)</label>
+                <input type="number" step="0.00001" name="exchange_rate_to_pkr" class="form-control" value="{{ $currentRate }}" required>
+                <small class="text-muted">Enter the rate at the time of payment. 1 {{ $supplier->currency['code'] }} = {{ $currentRate }} PKR</small>
+            </div>
+            @endif
             <button class="btn btn-success"><i class="bi bi-cash"></i> Pay Supplier</button>
         </form>
     </div>
