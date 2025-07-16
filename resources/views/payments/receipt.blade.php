@@ -36,6 +36,7 @@
             @if(auth()->user() && auth()->user()->company && auth()->user()->company->address) <div><i class="bi bi-geo-alt"></i> {{ auth()->user()->company->address }}</div> @endif
             @if(auth()->user() && auth()->user()->company && auth()->user()->company->cell_no) <div><i class="bi bi-telephone"></i> {{ auth()->user()->company->cell_no }}</div> @endif
             @if(auth()->user() && auth()->user()->company && auth()->user()->company->email) <div><i class="bi bi-envelope"></i> {{ auth()->user()->company->email }}</div> @endif
+            @if(auth()->user() && auth()->user()->company && auth()->user()->company->website) <div><i class="bi bi-globe"></i> {{ auth()->user()->company->website }}</div> @endif
         </div>
     </div>
     <hr style="border:1.5px solid #b71c1c; margin: 0 32px 0 32px;">
@@ -91,9 +92,7 @@
     </div>
     <div class="thankyou">Thank you for your business!</div>
     <div class="stamp" style="
-        position: absolute;
-        top: 180px;
-        right: 60px;
+        margin: 32px auto 0 auto;
         width: 150px;
         height: 150px;
         border: 6px dashed #1565c0;
@@ -102,10 +101,7 @@
         font-size: 2.2rem;
         font-family: 'Courier New', Courier, monospace;
         font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.22;
+        opacity: 0.42;
         transform: rotate(-12deg);
         pointer-events: none;
         user-select: none;
@@ -113,9 +109,22 @@
         letter-spacing: 2px;
         text-shadow: 1px 1px 2px #1565c055;
         text-transform: uppercase;
+        background: transparent;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     ">
         RECEIVED
     </div>
+    <!-- Watermark -->
+    @if(auth()->user() && auth()->user()->company && auth()->user()->company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . auth()->user()->company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
+    <!-- End Watermark -->
     <div class="no-print" style="text-align:center; margin-bottom:32px;">
         <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;">Print</button>
     </div>
