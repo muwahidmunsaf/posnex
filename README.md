@@ -1,61 +1,109 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Irshad Autos POS System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modern, full-featured Point of Sale (POS) and business management web application for retailers, distributors, and shopkeepers. Built with Laravel, it streamlines sales, inventory, HR, reporting, and backup operations for small and medium businesses.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Sales & POS**
+  - Create and manage sales (retail, wholesale, distributor)
+  - Manual sales record entry
+  - Sales receipts and after-sale operations
+  - Returns and exchanges management
+- **Inventory Management**
+  - Add, edit, and track inventory items
+  - Stock entry and purchase management
+  - Low-stock alerts
+- **Supplier & Customer Management**
+  - Manage suppliers and customers
+  - Supplier payments and customer transactions
+- **Distributor & Shopkeeper Management**
+  - Assign products to distributors
+  - Track shopkeeper transactions
+  - Distributor payments and product assignments
+- **HR & Employee Management**
+  - Employee records and salary payments
+  - Bulk salary processing
+- **Expense Tracking**
+  - Record and categorize business expenses
+- **Comprehensive Reporting**
+  - Stock, purchase, sales, finance, and invoice reports
+  - Daily sales and profit analytics
+  - External sales and purchases reports
+- **User & Role Management**
+  - Admin, manager, and employee roles
+  - Permissions-based access control
+- **Activity Logging & Audit Trail**
+  - Logs all key actions (CRUD, login/logout, payments, reports, backups)
+  - Recycle bin for deleted records
+- **Backup & Restore**
+  - Downloadable CSV/XLSX backups for all modules
+  - Full database and file backup/restore
+  - Google Drive cloud backup integration
+- **Other**
+  - Multi-company support
+  - Modern, responsive UI
+  - Secure authentication and session management
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🛠️ Installation & Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Requirements
+- PHP 8.2+
+- Composer
+- MySQL/MariaDB (or compatible DB)
+- Node.js & npm (for asset compilation, if needed)
+- [Optional] Docker
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Environment Variables
+Copy `.env.example` to `.env` and set:
+- `APP_KEY` (generate with `php artisan key:generate`)
+- `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_DRIVE_REFRESH_TOKEN`, `GOOGLE_DRIVE_FOLDER_ID` (for cloud backup)
+- Mail, cache, and other service credentials as needed
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Local Setup
+1. Clone the repo and `cd` into the project directory
+2. Install PHP dependencies:
+   ```bash
+   composer install
+   ```
+3. Install JS dependencies (if using asset pipeline):
+   ```bash
+   npm install && npm run build
+   ```
+4. Set up your `.env` file and database
+5. Run migrations and seeders:
+   ```bash
+   php artisan migrate --seed
+   ```
+6. Start the server:
+   ```bash
+   php artisan serve
+   ```
 
-## Laravel Sponsors
+### Docker Setup
+- Build and run with Docker:
+  ```bash
+  docker build -t irshad-autos-pos .
+  docker run -p 8080:8080 irshad-autos-pos
+  ```
+- The container will auto-run migrations and seeders, and serve the app on port 8080.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 📊 Demo Data
+- The system includes seeders for demo users, companies, inventory, and more.
+- Login as admin, manager, or employee to explore different roles.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 📝 License
+This project is open-sourced under the [MIT license](https://opensource.org/licenses/MIT).
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 👨‍💻 Developed by [DevZyte](https://devzyte.com)
+For support or customizations, contact info@devzyte.com or (+92) 346-7911195.
