@@ -19,7 +19,7 @@ class ShopkeeperTransactionController extends Controller
 
     protected function authorizeAdmin()
     {
-        if (!Auth::user() || Auth::user()->role !== 'admin') {
+        if (!Auth::user() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
             abort(403);
         }
     }
@@ -43,22 +43,30 @@ class ShopkeeperTransactionController extends Controller
     public function store(Request $request)
     {
         $this->authorizeAdmin();
-        
+        // Only require fields needed for a payment
         $validated = $request->validate([
             'shopkeeper_id' => 'required|exists:shopkeepers,id',
             'distributor_id' => 'required|exists:distributors,id',
-            'inventory_id' => 'nullable|exists:inventory,id',
-            'type' => 'required|in:product_received,product_sold,product_returned,payment_made',
-            'quantity' => 'nullable|numeric|min:1',
-            'unit_price' => 'nullable|numeric|min:0',
+            'type' => 'required|in:payment_made',
             'total_amount' => 'required|numeric|min:0',
             'transaction_date' => 'required|date',
             'description' => 'nullable|string',
+            'status' => 'nullable|in:pending,completed,cancelled',
         ]);
-
+        // Default status to completed if not set
+        if (empty($validated['status'])) {
+            $validated['status'] = 'completed';
+        }
+        // Calculate commission for payment_made
+        if ($validated['type'] === 'payment_made') {
+            $shopkeeper = \App\Models\Shopkeeper::find($validated['shopkeeper_id']);
+            $distributor = $shopkeeper ? $shopkeeper->distributor : null;
+            $commissionRate = $distributor && $distributor->commission_rate ? $distributor->commission_rate : 0;
+            $validated['commission_amount'] = round($validated['total_amount'] * $commissionRate / 100, 2);
+        }
         ShopkeeperTransaction::create($validated);
-        
-        return redirect()->route('shopkeeper-transactions.index')->with('success', 'Shopkeeper transaction created successfully');
+        // Return a simple success for AJAX
+        return response()->json(['success' => true]);
     }
 
     public function show(string $id)
@@ -81,7 +89,6 @@ class ShopkeeperTransactionController extends Controller
     public function update(Request $request, string $id)
     {
         $this->authorizeAdmin();
-        
         $validated = $request->validate([
             'shopkeeper_id' => 'required|exists:shopkeepers,id',
             'distributor_id' => 'required|exists:distributors,id',
@@ -93,11 +100,17 @@ class ShopkeeperTransactionController extends Controller
             'transaction_date' => 'required|date',
             'description' => 'nullable|string',
         ]);
-
         $transaction = ShopkeeperTransaction::findOrFail($id);
+        // Recalculate commission if payment_made
+        if ($validated['type'] === 'payment_made') {
+            $shopkeeper = \App\Models\Shopkeeper::find($validated['shopkeeper_id']);
+            $distributor = $shopkeeper ? $shopkeeper->distributor : null;
+            $commissionRate = $distributor && $distributor->commission_rate ? $distributor->commission_rate : 0;
+            $validated['commission_amount'] = round($validated['total_amount'] * $commissionRate / 100, 2);
+        }
         $transaction->update($validated);
-        
-        return redirect()->route('shopkeeper-transactions.index')->with('success', 'Shopkeeper transaction updated successfully');
+        // Return JSON for AJAX
+        return response()->json(['success' => true]);
     }
 
     public function destroy(string $id)
@@ -105,7 +118,7 @@ class ShopkeeperTransactionController extends Controller
         $this->authorizeAdmin();
         $transaction = ShopkeeperTransaction::findOrFail($id);
         $transaction->delete();
-        
-        return redirect()->route('shopkeeper-transactions.index')->with('success', 'Shopkeeper transaction deleted successfully');
+        // Return JSON for AJAX
+        return response()->json(['success' => true]);
     }
 }

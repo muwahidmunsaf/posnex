@@ -71,7 +71,18 @@
                     <td>{{ $s['currency_symbol'] }} {{ number_format($s['balance'], 2) }} <span class="text-muted">({{ $s['currency_code'] }})</span></td>
                 </tr>
             @endforeach
+            <tr style="font-weight:bold; background:#f3e5e5; color:#b71c1c;">
+                <td colspan="2" style="text-align:right;">Total (PKR):</td>
+                <td>Rs {{ number_format($totalPurchase, 2) }}</td>
+                <td>Rs {{ number_format($totalPaid, 2) }}</td>
+                <td>Rs {{ number_format($totalBalance, 2) }}</td>
+            </tr>
         </tbody>
     </table>
+    @if($company && $company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
 </body>
 </html> 

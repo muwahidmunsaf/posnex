@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Daisho Gold</title>
+    <title>Irshad Autos</title>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta
@@ -29,7 +29,7 @@
   <!-- Hero Section -->
   <div class="row align-items-center">
     <div class="col-md-6">
-      <h1 class="display-4 fw-bold mb-3">Welcome to <span class="text-danger"> Daisho Gold</span></h1>
+      <h1 class="display-4 fw-bold mb-3">Welcome to <span class="text-danger"> Irshad Autos</span></h1>
       <p class="lead mb-4">
         Streamline your sales, manage inventory, and grow your business with our powerful Point of Sale web application.
       </p>

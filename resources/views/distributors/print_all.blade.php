@@ -35,6 +35,13 @@
             @if($company && $company->website) <div><i class="bi bi-globe"></i> {{ $company->website }}</div> @endif
         </div>
     </div>
+    <!-- Watermark -->
+    @if($company && $company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
+    <!-- End Watermark -->
     @if($startDate || $endDate)
         <div style="text-align:center; margin-bottom:12px; color:#b71c1c; font-weight:bold;">
             Showing data
@@ -77,14 +84,14 @@
                 @endphp
                 <tr>
                     <td>{{ $row['sr'] }}</td>
-                    <td>{{ $row['name'] }}</td>
-                    <td>{{ number_format($row['commission_rate'], 2) }}</td>
-                    <td>{{ number_format($row['total_commission'], 2) }}</td>
-                    <td>{{ number_format($row['paid'], 2) }}</td>
-                    <td>{{ number_format($row['remaining'], 2) }}</td>
-                    <td>{{ $row['total_shopkeepers'] }}</td>
-                    <td>{{ number_format($row['total_sales'], 2) }}</td>
-                    <td>{{ number_format($row['balance'], 2) }}</td>
+                    <td>{{ $row['name'] ?: 'N/A' }}</td>
+                    <td>{{ $row['commission_rate'] !== null ? number_format($row['commission_rate'], 2) : 'N/A' }}</td>
+                    <td>{{ $row['total_commission'] !== null ? number_format($row['total_commission'], 2) : 'N/A' }}</td>
+                    <td>{{ $row['paid'] !== null ? number_format($row['paid'], 2) : 'N/A' }}</td>
+                    <td>{{ $row['remaining'] !== null ? number_format($row['remaining'], 2) : 'N/A' }}</td>
+                    <td>{{ $row['total_shopkeepers'] !== null ? $row['total_shopkeepers'] : 'N/A' }}</td>
+                    <td>{{ $row['total_sales'] !== null ? number_format($row['total_sales'], 2) : 'N/A' }}</td>
+                    <td>{{ $row['balance'] !== null ? number_format($row['balance'], 2) : 'N/A' }}</td>
                 </tr>
             @endforeach
             <tr style="font-weight:bold; background:#f3e5e5; color:#b71c1c;">

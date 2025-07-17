@@ -20,8 +20,8 @@ class AuthController extends Controller
     }
     public function showRegisterForm()
     {
-        $companies = Company::all();
-        return view('auth.register', compact('companies'));
+        $company = auth()->user()->company;
+        return view('auth.register', compact('company'));
     }
 
     public function register(Request $request)

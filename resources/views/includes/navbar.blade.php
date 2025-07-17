@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{{ url('/') }}">
-            <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 40px;">
-            <span class="brand-text">Daisho Gold</span>
+            <img src="{{ asset('logo.png') }}" alt="Irshad Autos Logo" style="height: 40px;">
+            <span class="brand-text">Irshad Autos</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
@@ -43,19 +43,7 @@
                                 <li><a class="dropdown-item" href="{{ route('company.settings.edit') }}">Company Details</a></li>
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Update Profile</a></li>
                                 @if (in_array(auth()->user()->role, ['admin', 'superadmin']))
-                                    <li><a class="dropdown-item" href="{{ route('admin.backups') }}">Manage Backups</a></li>
-                                    <li>
-                                        <form action="{{ route('admin.backup') }}" method="POST" id="profile-backup-form">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item">Backup Now</button>
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form action="{{ route('admin.restore') }}" method="POST" id="profile-restore-form">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item">Restore (Coming Soon)</button>
-                                        </form>
-                                    </li>
+                                    <li><a class="dropdown-item" href="/manage-backup">CSV Backup & Restore</a></li>
                                 @endif
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST" class="d-inline">

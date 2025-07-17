@@ -32,17 +32,9 @@
                             <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="company_id" class="form-label">Company</label>
-                            <select name="company_id" id="company_id" class="form-select">
-                                <option value="">Select Company</option>
-                                @foreach($companies as $company)
-                                    <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
-                                        {{ $company->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        {{-- Company selection --}}
+                        <input type="hidden" name="company_id" value="{{ $company->id }}">
+                        <p><strong>Company:</strong> {{ $company->name }}</p>
 
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>

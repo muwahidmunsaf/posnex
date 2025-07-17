@@ -65,8 +65,8 @@
         <div class="login-card">
             <div class="text-center mb-4">
                 <div class="brand-logo text-center mb-3">
-                    <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 60px;">
-                    <h1 class="text-3xl font-bold text-center text-danger">Daisho Gold</h1>
+                    <img src="{{ asset('logo.png') }}" alt="Irshad Autos Logo" style="height: 60px;">
+                    <h1 class="text-3xl font-bold text-center text-danger">Irshad Autos</h1>
                 </div>
                 <small class="text-muted">Please login to continue</small>
             </div>

@@ -16,4 +16,9 @@ class Employee extends Model
         'address',
         'company_id',
     ];
+
+    public function salaryPayments()
+    {
+        return $this->hasMany(SalaryPayment::class, 'employee_id');
+    }
 } 

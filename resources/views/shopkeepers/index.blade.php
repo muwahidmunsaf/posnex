@@ -60,7 +60,7 @@
         </h3>
         <div class="d-flex flex-wrap align-items-center gap-2" style="gap: 0.7rem;">
             <a href="{{ route('shopkeepers.create', ['distributor_id' => $distributor_id]) }}" class="btn btn-primary d-flex align-items-center justify-content-center" title="Add Shopkeeper" style="width:40px;height:40px;padding:0;font-size:1.3rem;"><i class="fa fa-plus"></i></a>
-            <a href="#" id="print-all-shopkeepers-btn" class="btn btn-secondary d-flex align-items-center justify-content-center" title="Print All" style="width:40px;height:40px;padding:0;font-size:1.3rem;"><i class="fa fa-print"></i></a>
+            <a href="{{ route('shopkeepers.printAll', array_filter(['from' => request('from'), 'to' => request('to'), 'distributor_id' => $distributor_id])) }}" target="_blank" id="print-all-shopkeepers-btn" class="btn btn-secondary d-flex align-items-center justify-content-center" title="Print All" style="width:40px;height:40px;padding:0;font-size:1.3rem;"><i class="fa fa-print"></i></a>
             <!-- Search Icon with Popover -->
             <button type="button" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" id="searchPopoverBtn" title="Search by Name" style="width:40px;height:40px;padding:0;font-size:1.3rem;">
                 <i class="fa fa-search"></i>
@@ -88,7 +88,11 @@
                         <label for="to" class="form-label mb-1">To</label>
                         <input type="date" name="to" id="to" class="form-control form-control-sm" value="{{ request('to') }}">
                     </div>
+                    @if($distributor_id)
+                        <input type="hidden" name="distributor_id" value="{{ $distributor_id }}">
+                    @endif
                     <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa fa-filter me-1"></i> Filter</button>
+                    <button type="button" class="btn btn-sm btn-secondary w-100 mt-2" id="clear-date-filter"><i class="fa fa-times me-1"></i> Clear Filter</button>
                 </form>
             </div>
         </div>
@@ -151,13 +155,38 @@
                         <td>Rs {{ number_format($shopkeeper->total_sales, 2) }}</td>
                         <td>Rs {{ number_format($shopkeeper->outstanding_balance, 2) }}</td>
                         <td>
-                            <a href="#" class="btn btn-sm btn-secondary print-history-btn" data-shopkeeper-id="{{ $shopkeeper->id }}" title="Print for Date Range"><i class="bi bi-printer"></i></a>
+                            <a href="{{ route('shopkeepers.printHistory', ['shopkeeper' => $shopkeeper->id, 'from' => request('from'), 'to' => request('to')]) }}" target="_blank" class="btn btn-sm btn-secondary" title="Print for Date Range"><i class="bi bi-printer"></i></a>
                             <a href="{{ route('shopkeepers.show', $shopkeeper) }}" class="btn btn-sm btn-info" title="View"><i class="bi bi-eye"></i></a>
                             <a href="{{ route('shopkeepers.edit', $shopkeeper) }}" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil"></i></a>
-                            <form action="{{ route('shopkeepers.destroy', $shopkeeper) }}" method="POST" style="display:inline-block;">
+                            <!-- Delete Button to trigger modal -->
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteShopkeeperModal{{ $shopkeeper->id }}" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <!-- Hidden form for deletion -->
+                            <form action="{{ route('shopkeepers.destroy', $shopkeeper) }}" method="POST" style="display:none;" id="deleteShopkeeperForm{{ $shopkeeper->id }}">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this shopkeeper?')" title="Delete"><i class="bi bi-trash"></i></button>
                             </form>
+                            <!-- Modal (outside form) -->
+                            <div class="modal fade" id="deleteShopkeeperModal{{ $shopkeeper->id }}" tabindex="-1" aria-labelledby="deleteShopkeeperModalLabel{{ $shopkeeper->id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="deleteShopkeeperModalLabel{{ $shopkeeper->id }}">Confirm Deletion</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="alert alert-warning">
+                                                <strong>Warning:</strong> Deleting this shopkeeper will <b>hide</b> them from the system, but all related sales and payment history will be preserved and not affected. You can restore the shopkeeper later if needed.
+                                            </div>
+                                            Are you sure you want to delete <strong>{{ $shopkeeper->name }}</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteShopkeeperForm{{ $shopkeeper->id }}').submit();">Yes, Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -196,6 +225,11 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+document.getElementById('clear-date-filter').onclick = function() {
+    document.getElementById('from').value = '';
+    document.getElementById('to').value = '';
+    document.getElementById('shopkeeper-date-filter-form-popover').submit();
+};
 </script>
 @endpush
 @endsection 

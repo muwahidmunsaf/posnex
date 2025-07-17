@@ -264,6 +264,7 @@
               <input type="hidden" name="shopkeeper_id" value="{{ $shopkeeper->id }}">
               <input type="hidden" name="distributor_id" value="{{ $shopkeeper->distributor_id }}">
               <input type="hidden" name="type" value="payment_made">
+              <input type="hidden" name="status" value="completed">
               <div class="mb-3">
                 <label for="total_amount" class="form-label">Amount Received</label>
                 <input type="number" step="0.01" name="total_amount" id="total_amount" class="form-control" min="0" required>
@@ -300,18 +301,23 @@
             },
             body: formData
           })
-          .then(response => {
+          .then(async response => {
             if (response.ok) {
+              alert('Payment saved successfully!');
+              setTimeout(() => window.location.reload(), 800);
               return response.text();
             } else {
-              return response.json().then(data => { throw data; });
+              let data;
+              try { data = await response.json(); } catch { data = null; }
+              throw data;
             }
           })
-          .then(() => window.location.reload())
           .catch((data) => {
             let msg = 'Error saving payment.';
             if (data && data.errors) {
               msg = Object.values(data.errors).flat().join('\n');
+            } else if (data && data.message) {
+              msg = data.message;
             }
             alert(msg);
           });
@@ -366,17 +372,22 @@ document.addEventListener('DOMContentLoaded', function() {
           'X-HTTP-Method-Override': 'DELETE'
         }
       })
-      .then(response => {
+      .then(async response => {
         if (response.ok) {
-          window.location.reload();
+          alert('Payment deleted successfully!');
+          setTimeout(() => window.location.reload(), 800);
         } else {
-          return response.json().then(data => { throw data; });
+          let data;
+          try { data = await response.json(); } catch { data = null; }
+          throw data;
         }
       })
       .catch((data) => {
         let msg = 'Error deleting payment.';
         if (data && data.errors) {
           msg = Object.values(data.errors).flat().join('\n');
+        } else if (data && data.message) {
+          msg = data.message;
         }
         alert(msg);
       });

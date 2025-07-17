@@ -292,7 +292,7 @@ class SaleController extends Controller
 
     public function index(Request $request)
     {
-        $query = Sale::with('customer') // eager load customer
+        $query = Sale::with(['customer', 'returns']) // eager load customer and returns
             ->where('company_id', Auth::user()->company_id);
 
         if ($request->filled('search')) {
@@ -305,6 +305,11 @@ class SaleController extends Controller
         }
 
         $sales = $query->latest()->paginate(10);
+
+        // Precompute has_return flag for each sale
+        foreach ($sales as $sale) {
+            $sale->has_return = $sale->returns()->exists();
+        }
 
         return view('sales.index', compact('sales'));
     }
@@ -385,6 +390,11 @@ class SaleController extends Controller
                     'reason' => $reason,
                     'processed_by' => $user->id,
                 ]);
+                // Decrement sold quantity in InventorySale
+                $invSale = \App\Models\InventorySale::where('sale_id', $sale->id)->where('item_id', $itemId)->first();
+                if ($invSale) {
+                    $invSale->decrement('quantity', $qty);
+                }
             }
         }
         if ($anyReturn) {

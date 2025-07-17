@@ -65,7 +65,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr style="background: #cfe2ff; font-weight: bold; font-size: 1.1em;">
+                <tr class="section-title income-title">
                     <td colspan="2">INCOME</td>
                 </tr>
                 <tr>
@@ -76,9 +76,21 @@
                     <td style="text-align: left;">Returns</td>
                     <td class="text-danger">{{ number_format($totalReturns, 2) }}</td>
                 </tr>
+                <tr>
+                    <td style="text-align: left;">Tax</td>
+                    <td>{{ number_format($totalTax, 2) }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: left;">Discounts</td>
+                    <td>{{ number_format($totalDiscounts, 2) }}</td>
+                </tr>
                 <tr style="font-weight: bold;">
-                    <td style="text-align: left;">Net Sales</td>
-                    <td class="text-primary">{{ number_format($netSale, 2) }}</td>
+                    <td style="text-align: left;">Net Sales (Including Tax)</td>
+                    <td class="text-primary">{{ number_format($netSaleIncludingTax, 2) }}</td>
+                </tr>
+                <tr style="font-weight: bold;">
+                    <td style="text-align: left;">Net Sales (Excluding Tax)</td>
+                    <td class="text-primary">{{ number_format($netSaleExcludingTax, 2) }}</td>
                 </tr>
                 <tr>
                     <td style="text-align: left;">External Sales</td>
@@ -93,7 +105,7 @@
                     <td>{{ number_format($pendingBalance, 2) }}</td>
                 </tr>
 
-                <tr style="background: #f8d7da; font-weight: bold; font-size: 1.1em;">
+                <tr class="section-title expenses-title">
                     <td colspan="2">EXPENSES</td>
                 </tr>
                 <tr>
@@ -125,7 +137,7 @@
                     <td>{{ number_format($miscExpense, 2) }}</td>
                 </tr>
 
-                <tr style="background: #dee2e6; font-weight: bold; font-size: 1.1em;">
+                <tr class="section-title summary-title">
                     <td colspan="2">SUMMARY</td>
                 </tr>
                 <tr style="font-weight: bold; font-size: 1.1em;">
@@ -225,6 +237,17 @@
     .text-success { color: #198754 !important; }
     .text-danger { color: #dc3545 !important; }
     .text-primary { color: #0d6efd !important; }
+    .section-title {
+        text-align: center !important;
+        font-weight: bold !important;
+        font-size: 1.15em !important;
+        background: #ffe066 !important;
+        color: #b71c1c !important;
+        letter-spacing: 1px;
+    }
+    .income-title { background: #cfe2ff !important; color: #0d6efd !important; }
+    .expenses-title { background: #f8d7da !important; color: #dc3545 !important; }
+    .summary-title { background: #dee2e6 !important; color: #495057 !important; }
 </style>
 
 {{-- Print Script --}}

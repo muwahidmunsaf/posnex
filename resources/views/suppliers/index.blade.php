@@ -98,7 +98,8 @@
                         <label for="to" class="form-label mb-1">To</label>
                         <input type="date" name="to" id="to" class="form-control form-control-sm" value="{{ request('to') }}">
                     </div>
-                    <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa fa-filter me-1"></i> Filter</button>
+                    <button type="submit" class="btn btn-sm btn-primary w-100 mb-2"><i class="fa fa-filter me-1"></i> Filter</button>
+                    <a href="{{ route('suppliers.index') }}" class="btn btn-sm btn-outline-secondary w-100">Clear Filter</a>
                 </form>
             </div>
         </div>
@@ -170,6 +171,9 @@
                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
+                                            <div class="alert alert-warning">
+                                                <strong>Warning:</strong> Deleting this supplier will <b>hide</b> them from the system, but all payment and purchase history will be preserved and not affected. You can restore the supplier later if needed.
+                                            </div>
                                             Are you sure you want to delete <strong>{{ $supplier->supplier_name }}</strong>?
                                         </div>
                                         <div class="modal-footer">

@@ -207,4 +207,23 @@ class DistributorController extends Controller
         $this->logExport('All Distributors Report', 'PDF');
         return view('distributors.print_all', compact('summary', 'startDate', 'endDate'));
     }
+
+    /**
+     * Display a listing of soft-deleted distributors.
+     */
+    public function deletedDistributors()
+    {
+        $deletedDistributors = Distributor::onlyTrashed()->get();
+        return view('distributors.deleted', compact('deletedDistributors'));
+    }
+
+    /**
+     * Restore a soft-deleted distributor.
+     */
+    public function restore($id)
+    {
+        $distributor = Distributor::onlyTrashed()->findOrFail($id);
+        $distributor->restore();
+        return redirect()->route('recycle.bin')->with('success', 'Distributor restored successfully.');
+    }
 }

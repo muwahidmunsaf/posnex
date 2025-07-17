@@ -6,6 +6,7 @@ use App\Models\DistributorPayment;
 use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Expense;
 
 class DistributorPaymentController extends Controller
 {
@@ -64,9 +65,21 @@ class DistributorPaymentController extends Controller
             'reference_no' => 'nullable|string|max:255',
         ]);
 
-        DistributorPayment::create($data);
+        $payment = DistributorPayment::create($data);
+
+        // If this is a commission payment, add to expenses
+        if ($data['type'] === 'commission') {
+            Expense::create([
+                'purpose' => 'Distributor Commission',
+                'details' => 'Commission paid to distributor ID: ' . $data['distributor_id'],
+                'amount' => $data['amount'],
+                'paidBy' => Auth::user()->name,
+                'paymentWay' => 'cash', // or use a field if available
+                'company_id' => Auth::user()->company_id,
+            ]);
+        }
         
-        return redirect()->route('distributor-payments.index')
+        return redirect()->route('distributors.history', ['distributor' => $data['distributor_id']])
             ->with('success', 'Commission payment recorded successfully.');
     }
 
@@ -98,12 +111,12 @@ class DistributorPaymentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, DistributorPayment $distributorPayment)
+    public function update(Request $request, $distributor, $distributorPayment)
     {
         if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
             abort(403);
         }
-        
+        $distributorPayment = \App\Models\DistributorPayment::findOrFail($distributorPayment);
         $data = $request->validate([
             'distributor_id' => 'required|exists:distributors,id',
             'amount' => 'required|numeric|min:0',
@@ -114,21 +127,35 @@ class DistributorPaymentController extends Controller
             'reference_no' => 'nullable|string|max:255',
         ]);
         $distributorPayment->update($data);
-        return redirect()->route('distributor-payments.index')
-            ->with('success', 'Commission payment updated successfully.');
+        $distributorId = $distributorPayment->distributor_id ?? ($distributorPayment->distributor ? $distributorPayment->distributor->id : null);
+        if ($distributorId) {
+            return redirect()->route('distributors.history', ['distributor' => $distributorId])
+                ->with('success', 'Commission payment updated successfully.');
+        } else {
+            return redirect()->route('distributors.index')
+                ->with('error', 'Commission payment updated, but distributor not found.');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DistributorPayment $distributorPayment)
+    public function destroy($distributor, $distributorPayment)
     {
         if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'manager'])) {
             abort(403);
         }
-        
-        $distributorPayment->delete();
-        return redirect()->route('distributor-payments.index')
-            ->with('success', 'Commission payment deleted successfully.');
+        $payment = \App\Models\DistributorPayment::findOrFail($distributorPayment);
+        \Log::info('Destroy called for DistributorPayment', ['id' => $payment->id, 'distributor_id' => $payment->distributor_id]);
+        $distributorId = $payment->distributor_id ?? ($payment->distributor ? $payment->distributor->id : null);
+        $deleted = $payment->delete();
+        \Log::info('Delete result', ['deleted' => $deleted]);
+        if ($distributorId) {
+            return redirect()->route('distributors.history', ['distributor' => $distributorId])
+                ->with('success', 'Commission payment deleted successfully.');
+        } else {
+            return redirect()->route('distributors.index')
+                ->with('error', 'Commission payment deleted, but distributor not found.');
+        }
     }
 }

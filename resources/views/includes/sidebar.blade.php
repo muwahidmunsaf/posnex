@@ -2,8 +2,8 @@
     <div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end shadow-sm"
         style="width: 250px; height: 100vh; max-height: 100vh; overflow-y: auto; position: fixed; top: 0; left: 0; z-index: 1030;">
         <a href="{{ url('/') }}" class="d-flex align-items-center mb-4 text-decoration-none">
-            <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 32px; margin-right: 8px;">
-            <span class="fs-5 fw-semibold text-danger">Daisho Gold</span>
+            <img src="{{ asset('logo.png') }}" alt="Irshad Autos Logo" style="height: 32px; margin-right: 8px;">
+            <span class="fs-5 fw-semibold text-danger">Irshad Autos</span>
         </a>
         <hr>
 
@@ -184,6 +184,19 @@
                         <span><i class="bi bi-clock-history me-2"></i> Activity Logs</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('recycle.bin') }}">
+                        <i class="bi bi-trash3"></i> Recycle Bin
+                    </a>
+                </li>
+                @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin']))
+                <li class="mt-2">
+                    <a class="nav-link d-flex justify-content-between align-items-center {{ request()->is('manage-backup') ? 'active' : 'text-dark' }}"
+                       href="/manage-backup">
+                        <span><i class="bi bi-cloud-arrow-up me-2"></i> Backup</span>
+                    </a>
+                </li>
+            @endif
             @endif
 
         </ul>

@@ -35,7 +35,10 @@ class ShopkeeperController extends Controller
         foreach ($shopkeepers as $shopkeeper) {
             $sales = \App\Models\Sale::where('shopkeeper_id', $shopkeeper->id)->get();
             $totalSale = $sales->sum('total_amount');
-            $received = $sales->sum('amount_received');
+            $receivedFromSales = $sales->sum('amount_received');
+            // Add payments from ShopkeeperTransaction of type 'payment_made'
+            $receivedFromPayments = $shopkeeper->transactions()->where('type', 'payment_made')->sum('total_amount');
+            $received = $receivedFromSales + $receivedFromPayments;
             $balance = $totalSale - $received;
             $totalSales += $totalSale;
             $totalReceived += $received;
@@ -196,13 +199,32 @@ class ShopkeeperController extends Controller
     }
 
     /**
+     * Display a listing of soft-deleted shopkeepers.
+     */
+    public function deletedShopkeepers()
+    {
+        $deletedShopkeepers = Shopkeeper::onlyTrashed()->get();
+        return view('shopkeepers.deleted', compact('deletedShopkeepers'));
+    }
+
+    /**
+     * Restore a soft-deleted shopkeeper.
+     */
+    public function restore($id)
+    {
+        $shopkeeper = Shopkeeper::onlyTrashed()->findOrFail($id);
+        $shopkeeper->restore();
+        return redirect()->route('recycle.bin')->with('success', 'Shopkeeper restored successfully.');
+    }
+
+    /**
      * Print the full history for the specified shopkeeper.
      */
     public function printHistory($id)
     {
         $shopkeeper = Shopkeeper::with('distributor.company')->findOrFail($id);
-        $startDate = request('start_date');
-        $endDate = request('end_date');
+        $startDate = request('from');
+        $endDate = request('to');
 
         $salesQuery = \App\Models\Sale::where('shopkeeper_id', $shopkeeper->id)->with(['returns', 'inventorySales.item']);
         $paymentsQuery = $shopkeeper->transactions()->where('type', 'payment_made');
@@ -239,8 +261,8 @@ class ShopkeeperController extends Controller
 
     public function printAll(Request $request)
     {
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date');
+        $startDate = $request->query('from');
+        $endDate = $request->query('to');
         $shopkeepers = \App\Models\Shopkeeper::with('distributor')->get();
         $summary = $shopkeepers->map(function($shopkeeper, $i) use ($startDate, $endDate) {
             $salesQuery = \App\Models\Sale::where('shopkeeper_id', $shopkeeper->id);

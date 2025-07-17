@@ -281,4 +281,23 @@ class CustomerController extends Controller
         // Optionally, filter each customer's sales/payments by date range in the view
         return view('customers.print_all', compact('customers', 'company', 'fromParam', 'toParam'));
     }
+
+    /**
+     * Display a listing of soft-deleted customers.
+     */
+    public function deletedCustomers()
+    {
+        $deletedCustomers = Customer::onlyTrashed()->get();
+        return view('customers.deleted', compact('deletedCustomers'));
+    }
+
+    /**
+     * Restore a soft-deleted customer.
+     */
+    public function restore($id)
+    {
+        $customer = Customer::onlyTrashed()->findOrFail($id);
+        $customer->restore();
+        return redirect()->route('recycle.bin')->with('success', 'Customer restored successfully.');
+    }
 }

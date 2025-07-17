@@ -180,7 +180,7 @@
                                     <!-- Edit Button -->
                                     <button class="btn btn-sm btn-outline-warning" title="Edit" data-bs-toggle="modal" data-bs-target="#editCommissionModal{{ $payment->id }}"><i class="bi bi-pencil"></i></button>
                                     <!-- Delete Button -->
-                                    <form action="{{ route('distributors.deleteCommission', ['distributor' => $distributor->id, 'payment' => $payment->id]) }}" method="POST" style="display:inline-block;">
+                                    <form action="{{ route('distributors.deleteCommission', ['distributor' => $distributor->id, 'distributorPayment' => $payment->id]) }}" method="POST" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete this commission payment?')"><i class="bi bi-trash"></i></button>
@@ -189,9 +189,8 @@
                                     <div class="modal fade" id="editCommissionModal{{ $payment->id }}" tabindex="-1" aria-labelledby="editCommissionModalLabel{{ $payment->id }}" aria-hidden="true">
                                       <div class="modal-dialog">
                                         <div class="modal-content">
-                                          <form method="POST" action="{{ route('distributors.updateCommission', ['distributor' => $distributor->id, 'payment' => $payment->id]) }}">
+                                          <form method="POST" action="{{ route('distributors.updateCommission', ['distributor' => $distributor->id, 'distributorPayment' => $payment->id]) }}">
                                             @csrf
-                                            @method('PATCH')
                                             <input type="hidden" name="distributor_id" value="{{ $distributor->id }}">
                                             <input type="hidden" name="type" value="commission">
                                             <input type="hidden" name="status" value="completed">

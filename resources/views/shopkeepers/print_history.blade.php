@@ -49,6 +49,12 @@
             @if($shopkeeper->company && $shopkeeper->company->website) <div><i class="bi bi-globe"></i> {{ $shopkeeper->company->website }}</div> @endif
         </div>
     </div>
+    @if($shopkeeper->company && $shopkeeper->company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $shopkeeper->company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
+    <!-- End Watermark -->
     <div class="no-print">
         <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;"><i class="bi bi-printer"></i> Print</button>
     </div>
@@ -57,10 +63,10 @@
         <table style="border: 1.5px solid #b71c1c; border-radius: 10px; width: 700px; background: #fff;">
             <tr>
                 <td style="vertical-align: top; width: 50%; border-right: 1.5px solid #b71c1c; padding: 18px 24px;">
-                    <div style="margin-bottom: 10px;"><span class="details-label">Name:</span> <span class="details-value">{{ $shopkeeper->name }}</span></div>
-                    <div style="margin-bottom: 10px;"><span class="details-label">Distributor:</span> <span class="details-value">{{ $shopkeeper->distributor->name ?? '-' }}</span></div>
-                    <div style="margin-bottom: 10px;"><span class="details-label">Phone:</span> <span class="details-value">{{ $shopkeeper->phone ?? '-' }}</span></div>
-                    <div style="margin-bottom: 10px;"><span class="details-label">Address:</span> <span class="details-value">{{ $shopkeeper->address ?? '-' }}</span></div>
+                    <div style="margin-bottom: 10px;"><span class="details-label">Name:</span> <span class="details-value">{{ $shopkeeper->name ?: 'N/A' }}</span></div>
+                    <div style="margin-bottom: 10px;"><span class="details-label">Distributor:</span> <span class="details-value">{{ $shopkeeper->distributor->name ?? 'N/A' }}</span></div>
+                    <div style="margin-bottom: 10px;"><span class="details-label">Phone:</span> <span class="details-value">{{ $shopkeeper->phone ?: 'N/A' }}</span></div>
+                    <div style="margin-bottom: 10px;"><span class="details-label">Address:</span> <span class="details-value">{{ $shopkeeper->address ?: 'N/A' }}</span></div>
                 </td>
                 <td style="vertical-align: top; width: 50%; padding: 18px 24px;">
                     <table class="summary-table">

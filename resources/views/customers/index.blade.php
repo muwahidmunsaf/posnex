@@ -84,6 +84,7 @@
                         <input type="text" name="city" id="city" class="form-control form-control-sm" value="{{ request('city') }}" placeholder="Enter city name">
                     </div>
                     <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa fa-search me-1"></i> Search</button>
+                    <a href="{{ route('customers.index') }}" class="btn btn-sm btn-secondary w-100 mt-2">Clear</a>
                 </form>
             </div>
             <!-- Filter Icon with Popover -->
@@ -101,6 +102,7 @@
                         <input type="date" name="to" id="to" class="form-control form-control-sm" value="{{ request('to') }}">
                     </div>
                     <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fa fa-filter me-1"></i> Filter</button>
+                    <a href="{{ route('customers.index') }}" class="btn btn-sm btn-secondary w-100 mt-2">Clear</a>
                 </form>
             </div>
         </div>
@@ -173,21 +175,26 @@
                     <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal{{ $customer->id }}" title="Delete"><i class="bi bi-trash"></i></button>
                     <!-- Modal -->
                     <div class="modal fade" id="deleteModal{{ $customer->id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ $customer->id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-top">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteModalLabel{{ $customer->id }}">Confirm Delete</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Are you sure you want to delete <strong>{{ $customer->name }}</strong>?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                                </form>
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ $customer->id }}">Confirm Delete</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning">
+                                        <strong>Warning:</strong> Deleting this customer will <b>hide</b> them from the system, but all payment and sales history will be preserved and not affected. You can restore the customer later if needed.
+                                    </div>
+                                    Are you sure you want to delete <strong>{{ $customer->name }}</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>

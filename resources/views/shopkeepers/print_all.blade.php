@@ -43,6 +43,12 @@
         </div>
     @endif
     <div class="section-title">All Shopkeepers Summary</div>
+    @if($company && $company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
+    <!-- End Watermark -->
     <table class="summary-table">
         <thead>
             <tr>
@@ -68,11 +74,11 @@
                 @endphp
                 <tr>
                     <td>{{ $row['sr'] }}</td>
-                    <td>{{ $row['name'] }}</td>
-                    <td>{{ $row['distributor'] }}</td>
-                    <td>{{ number_format($row['total_sales'], 2) }}</td>
-                    <td>{{ number_format($row['paid'], 2) }}</td>
-                    <td>{{ number_format($row['balance'], 2) }}</td>
+                    <td>{{ $row['name'] ?: 'N/A' }}</td>
+                    <td>{{ $row['distributor'] ?: 'N/A' }}</td>
+                    <td>{{ isset($row['total_sales']) ? number_format($row['total_sales'], 2) : 'N/A' }}</td>
+                    <td>{{ isset($row['paid']) ? number_format($row['paid'], 2) : 'N/A' }}</td>
+                    <td>{{ isset($row['balance']) ? number_format($row['balance'], 2) : 'N/A' }}</td>
                 </tr>
             @endforeach
             <tr style="font-weight:bold; background:#f3e5e5; color:#b71c1c;">

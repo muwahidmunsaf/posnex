@@ -31,18 +31,18 @@
                     </thead>
                     <tbody>
                         @foreach ($sales as $sale)
-                            <tr style="transition:background 0.2s;">
-                                <td>{{ $sale->sale_code }}</td>
-                                <td>{{ $sale->created_by }}</td>
-                                <td>{{ $sale->customer->name  ?? '-'}}</td>
-                                <td>{{ $sale->distributor->name ?? '-' }}</td>
-                                <td>{{ $sale->shopkeeper->name ?? '-' }}</td>
-                                <td>{{ $sale->subtotal }}</td>
-                                <td>{{ $sale->total_amount }}</td>
-                                <td>{{ ucfirst($sale->payment_method) }}</td>
-                                <td>{{ $sale->discount }}</td>
-                                <td>
-                                    <div class="d-flex gap-1">
+                            <tr class="{{ $sale->has_return ? 'highlight-row' : '' }}">
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->sale_code }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->created_by }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->customer->name  ?? '-'}}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->distributor->name ?? '-' }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->shopkeeper->name ?? '-' }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->subtotal }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->total_amount }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ ucfirst($sale->payment_method) }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">{{ $sale->discount }}</td>
+                                <td class="{{ $sale->has_return ? 'highlight-cell' : '' }}">
+                                    <div class="d-flex gap-1 align-items-center">
                                         <a href="{{ route('sales.print', $sale->id) }}" class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center" target="_blank" title="Print"><i class="fa fa-print"></i></a>
                                         <a href="{{ route('sales.return', $sale->id) }}" class="btn btn-sm btn-warning rounded-circle d-flex align-items-center justify-content-center" title="Return/Exchange"><i class="fa fa-undo"></i></a>
                                         @if($sale->manualProducts->count() == 0)
@@ -99,6 +99,12 @@
         .btn.rounded-circle { width: 24px; height: 24px; font-size: 0.95rem; }
         .form-control.rounded-pill { font-size: 12px; }
         .table-responsive { border-radius: 8px; }
+    }
+    .highlight-row {
+        background-color: #fffbe6 !important;
+    }
+    .highlight-cell {
+        background-color:rgb(248, 198, 192) !important;
     }
     </style>
 @endsection

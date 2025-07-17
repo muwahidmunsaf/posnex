@@ -3,8 +3,8 @@
         style="width: 250px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1030;">
         
         <a href="{{ url('/') }}" class="d-flex align-items-center mb-4 text-decoration-none">
-            <img src="{{ asset('logo.png') }}" alt="Daisho Gold Logo" style="height: 32px; margin-right: 8px;">
-            <span class="fs-5 fw-semibold text-danger">Daisho Gold</span>
+            <img src="{{ asset('logo.png') }}" alt="Irshad Autos Logo" style="height: 32px; margin-right: 8px;">
+            <span class="fs-5 fw-semibold text-danger">Irshad Autos</span>
         </a>
 
         <hr>

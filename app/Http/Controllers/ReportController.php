@@ -31,6 +31,10 @@ class ReportController extends Controller
 
         // Get all inventory items with current stock for this company
         $inventories = Inventory::where('company_id', $companyId)->get();
+        // Add sold_unit property to each inventory item
+        foreach ($inventories as $item) {
+            $item->sold_unit = \App\Models\InventorySale::where('item_id', $item->id)->sum('quantity');
+        }
 
         return view('report.stock', compact('inventories'));
     }
@@ -142,6 +146,16 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$from, $to])
             ->sum('total_amount');
 
+        // Total Tax
+        $totalTax = Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('tax_amount');
+
+        // Total Discounts
+        $totalDiscounts = Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->sum('discount');
+
         // External Purchases
         $externalPurchase = ExternalPurchase::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
@@ -158,9 +172,12 @@ class ReportController extends Controller
               ->whereBetween('created_at', [$from, $to]);
         })->sum(DB::raw('amount * quantity'));
 
-        $netSale = $totalSale - $totalReturns;
+        // Net Sales including tax (default)
+        $netSaleIncludingTax = $totalSale - $totalReturns - $totalDiscounts;
+        // Net Sales excluding tax
+        $netSaleExcludingTax = $netSaleIncludingTax - $totalTax;
 
-        // Payments received (sales + direct payments)
+        // Payments received (sales + direct payments + shopkeeper payments)
         $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
             ->get()
@@ -174,7 +191,12 @@ class ReportController extends Controller
         $paymentsReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->whereBetween('date', [$from, $to])->sum('amount_paid');
-        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
+        // Add shopkeeper payments
+        $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
+            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })
+            ->whereBetween('transaction_date', [$from, $to])
+            ->sum('total_amount');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments + $paymentsReceivedViaShopkeepers;
 
         // Total received via direct payments (for this company)
         $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
@@ -257,7 +279,7 @@ class ReportController extends Controller
         $netCashFlow = $totalCashIn - $totalCashOut;
 
         // Gross Profit and Net Profit
-        $grossProfit = $netSale - $totalPurchase;
+        $grossProfit = $netSaleIncludingTax - $totalPurchase;
         $allExpenses = $generalExpense + $marketingExpense + $utilityExpense + $salaryExpense + $miscExpense;
         $netProfit = $grossProfit - $allExpenses;
 
@@ -270,7 +292,10 @@ class ReportController extends Controller
             'externalSale',
             'totalExpense',
             'totalReturns',
-            'netSale',
+            'totalTax',
+            'totalDiscounts',
+            'netSaleIncludingTax',
+            'netSaleExcludingTax',
             'paymentsReceived',
             'pendingBalance',
             'accountsPayablePKR',
@@ -326,5 +351,17 @@ class ReportController extends Controller
         }
 
         return view('reports.daily-sales', compact('summary', 'totalSales', 'totalProfit', 'date'));
+    }
+
+    /**
+     * Show the recycle bin for deleted suppliers, customers, distributors, and shopkeepers.
+     */
+    public function recycleBin()
+    {
+        $deletedSuppliers = \App\Models\Supplier::onlyTrashed()->get();
+        $deletedCustomers = \App\Models\Customer::onlyTrashed()->get();
+        $deletedDistributors = \App\Models\Distributor::onlyTrashed()->get();
+        $deletedShopkeepers = \App\Models\Shopkeeper::onlyTrashed()->get();
+        return view('recycle_bin', compact('deletedSuppliers', 'deletedCustomers', 'deletedDistributors', 'deletedShopkeepers'));
     }
 }

@@ -21,7 +21,7 @@ use App\Http\Controllers\DistributorPaymentController;
 use App\Http\Controllers\DistributorProductController;
 use App\Http\Controllers\ShopkeeperTransactionController;
 use App\Models\Supplier;
-
+use App\Http\Controllers\AdminBackupController;
 
 
 Route::get('/', function () {
@@ -69,6 +69,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create');
     Route::post('suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
     Route::get('suppliers/print-all', [App\Http\Controllers\SupplierController::class, 'printAll'])->name('suppliers.printAll');
+    // Move deleted route BEFORE the {supplier} route to avoid conflict
+    Route::get('suppliers/deleted', [App\Http\Controllers\SupplierController::class, 'deletedSuppliers'])->name('suppliers.deleted');
+    Route::post('suppliers/{id}/restore', [App\Http\Controllers\SupplierController::class, 'restore'])->name('suppliers.restore');
+    // Now the {supplier} route comes after specific routes
     Route::get('suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
     Route::get('suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit');
     Route::put('suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
@@ -114,6 +118,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/customers/history/{customer}', [App\Http\Controllers\CustomerController::class, 'history'])->name('customers.history');
     Route::get('/customers/print-all', [App\Http\Controllers\CustomerController::class, 'printAll'])->name('customers.printAll');
     Route::get('/customers/print-history/{id}', [App\Http\Controllers\CustomerController::class, 'printHistory'])->name('customers.printHistory');
+    Route::get('/customers/deleted', [App\Http\Controllers\CustomerController::class, 'deletedCustomers'])->name('customers.deleted');
+    Route::post('/customers/{id}/restore', [App\Http\Controllers\CustomerController::class, 'restore'])->name('customers.restore');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -154,6 +160,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/daily-sales', [App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.dailySales');
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/recycle-bin', [App\Http\Controllers\ReportController::class, 'recycleBin'])->name('recycle.bin');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -188,33 +197,42 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/returns', [App\Http\Controllers\ReturnTransactionController::class, 'store'])->name('returns.store');
 });
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/admin/backups', [App\Http\Controllers\BackupController::class, 'listBackups'])->name('admin.backups');
-    Route::post('/admin/backup', [App\Http\Controllers\BackupController::class, 'runBackup'])->name('admin.backup');
-    Route::post('/admin/restore', [App\Http\Controllers\BackupController::class, 'runRestore'])->name('admin.restore');
-    Route::get('/admin/backup/download/{file}', [App\Http\Controllers\BackupController::class, 'downloadBackup'])->name('admin.backup.download');
-});
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/admin/backups', [App\Http\Controllers\BackupController::class, 'listBackups'])->name('admin.backups');
+//     Route::post('/admin/backup', [App\Http\Controllers\BackupController::class, 'runBackup'])->name('admin.backup');
+//     Route::post('/admin/restore', [App\Http\Controllers\BackupController::class, 'runRestore'])->name('admin.restore');
+//     Route::get('/admin/backup/download/{file}', [App\Http\Controllers\BackupController::class, 'downloadBackup'])->name('admin.backup.download');
+// });
 
 // Route::resource('distributors', DistributorController::class); // Disabled to prevent access to distributor detail page
-Route::get('distributors', [App\Http\Controllers\DistributorController::class, 'index'])->name('distributors.index');
-Route::get('distributors/create', [App\Http\Controllers\DistributorController::class, 'create'])->name('distributors.create');
-Route::post('distributors', [App\Http\Controllers\DistributorController::class, 'store'])->name('distributors.store');
-Route::get('distributors/{distributor}/edit', [App\Http\Controllers\DistributorController::class, 'edit'])->name('distributors.edit');
-Route::put('distributors/{distributor}', [\App\Http\Controllers\DistributorController::class, 'update'])->name('distributors.update');
-Route::get('distributors/{distributor}/history', [DistributorController::class, 'history'])->name('distributors.history');
-Route::get('distributors/{distributor}/print-history', [App\Http\Controllers\DistributorController::class, 'printHistory'])->name('distributors.printHistory');
-Route::get('distributors/{distributor}', [App\Http\Controllers\DistributorController::class, 'show'])->name('distributors.show');
-Route::delete('distributors/{distributor}', [App\Http\Controllers\DistributorController::class, 'destroy'])->name('distributors.destroy');
-Route::get('distributors/print-all', [App\Http\Controllers\DistributorController::class, 'printAll'])->name('distributors.printAll');
+Route::middleware(['auth'])->group(function () {
+    Route::get('distributors', [App\Http\Controllers\DistributorController::class, 'index'])->name('distributors.index');
+    Route::get('distributors/create', [App\Http\Controllers\DistributorController::class, 'create'])->name('distributors.create');
+    Route::post('distributors', [App\Http\Controllers\DistributorController::class, 'store'])->name('distributors.store');
+    Route::get('distributors/print-all', [App\Http\Controllers\DistributorController::class, 'printAll'])->name('distributors.printAll');
+    Route::get('distributors/{distributor}/edit', [App\Http\Controllers\DistributorController::class, 'edit'])->name('distributors.edit');
+    Route::put('distributors/{distributor}', [\App\Http\Controllers\DistributorController::class, 'update'])->name('distributors.update');
+    Route::get('distributors/{distributor}/history', [DistributorController::class, 'history'])->name('distributors.history');
+    Route::get('distributors/{distributor}/print-history', [App\Http\Controllers\DistributorController::class, 'printHistory'])->name('distributors.printHistory');
+    Route::get('distributors/{distributor}', [App\Http\Controllers\DistributorController::class, 'show'])->name('distributors.show');
+    Route::delete('distributors/{distributor}', [App\Http\Controllers\DistributorController::class, 'destroy'])->name('distributors.destroy');
+    Route::get('/distributors/deleted', [App\Http\Controllers\DistributorController::class, 'deletedDistributors'])->name('distributors.deleted');
+    Route::post('/distributors/{id}/restore', [App\Http\Controllers\DistributorController::class, 'restore'])->name('distributors.restore');
+});
 Route::middleware(['auth'])->group(function () {
     Route::get('shopkeepers/print-all', [App\Http\Controllers\ShopkeeperController::class, 'printAll'])->name('shopkeepers.printAll');
     Route::resource('shopkeepers', ShopkeeperController::class);
     Route::get('shopkeepers/{shopkeeper}/print-history', [ShopkeeperController::class, 'printHistory'])->name('shopkeepers.printHistory');
+    Route::get('/shopkeepers/deleted', [App\Http\Controllers\ShopkeeperController::class, 'deletedShopkeepers'])->name('shopkeepers.deleted');
+    Route::post('/shopkeepers/{id}/restore', [App\Http\Controllers\ShopkeeperController::class, 'restore'])->name('shopkeepers.restore');
 });
 // Route::resource('distributor-payments', DistributorPaymentController::class); // Disabled old distributor payments system
+
+// Define the route binding BEFORE the routes that use it
+
 Route::post('/distributors/{distributor}/pay-commission', [App\Http\Controllers\DistributorPaymentController::class, 'store'])->name('distributors.payCommission');
-Route::delete('distributors/{distributor}/commission/{payment}', [App\Http\Controllers\DistributorPaymentController::class, 'destroy'])->name('distributors.deleteCommission');
-Route::post('/distributors/{distributor}/commission/{payment}/update', [App\Http\Controllers\DistributorPaymentController::class, 'update'])->name('distributors.updateCommission');
+Route::delete('distributors/{distributor}/commission/{distributorPayment}', [App\Http\Controllers\DistributorPaymentController::class, 'destroy'])->name('distributors.deleteCommission');
+Route::post('/distributors/{distributor}/commission/{distributorPayment}/update', [App\Http\Controllers\DistributorPaymentController::class, 'update'])->name('distributors.updateCommission');
 
 Route::middleware(['auth'])->group(function () {
     Route::post('shopkeeper-transactions', [App\Http\Controllers\ShopkeeperTransactionController::class, 'store'])->name('shopkeeper-transactions.store');
@@ -222,7 +240,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Add missing resource and print/report routes for test coverage
 Route::middleware(['auth'])->group(function () {
-    Route::resource('distributor-payments', App\Http\Controllers\DistributorPaymentController::class);
+    // Route::resource('distributor-payments', App\Http\Controllers\DistributorPaymentController::class);
     Route::resource('distributor-products', App\Http\Controllers\DistributorProductController::class);
     Route::get('distributor-products/{distributor_product}/print-receipt', [App\Http\Controllers\DistributorProductController::class, 'printReceipt'])->name('distributor-products.print-receipt');
     Route::resource('purchase-items', App\Http\Controllers\PurchaseItemController::class);
@@ -236,5 +254,20 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/api/exchange-rate/{currency}', function($currency) {
     $rate = Supplier::getCurrencyRateToPKR($currency);
     return response()->json(['rate' => $rate]);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/manage-backup', [App\Http\Controllers\AdminBackupController::class, 'showPage'])->name('admin.csv-backup');
+    Route::post('/manage-backup', [App\Http\Controllers\AdminBackupController::class, 'exportAll'])->name('admin.csv-backup.export');
+    Route::post('/manage-backup/restore', [App\Http\Controllers\AdminBackupController::class, 'import'])->name('admin.csv-restore');
+    Route::post('/manage-backup/full-backup', [App\Http\Controllers\AdminBackupController::class, 'fullBackup'])->name('admin.full-backup');
+});
+
+// Cloud backup (Google Drive) routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/manage-backup/cloud-settings', [\App\Http\Controllers\CloudBackupController::class, 'settings'])->name('cloud-backup.settings');
+    Route::post('/manage-backup/cloud-settings', [\App\Http\Controllers\CloudBackupController::class, 'updateSettings'])->name('cloud-backup.settings.update');
+    Route::get('/manage-backup/google/redirect', [\App\Http\Controllers\CloudBackupController::class, 'redirectToGoogle'])->name('cloud-backup.google.redirect');
+    Route::get('/manage-backup/google/callback', [\App\Http\Controllers\CloudBackupController::class, 'handleGoogleCallback'])->name('cloud-backup.google.callback');
 });
 

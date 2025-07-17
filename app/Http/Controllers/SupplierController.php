@@ -23,25 +23,33 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->role === 'employee') {
             abort(403);
         }
         $companyId = Auth::user()->company_id;
+        $from = $request->query('from');
+        $to = $request->query('to');
         $suppliers = Supplier::where('company_id', $companyId)->latest()->paginate(10);
         $allSuppliers = Supplier::where('company_id', $companyId)->get();
         $totalSuppliers = $allSuppliers->count();
         $totalPaidPkr = 0;
         $totalPurchasePkr = 0;
         foreach ($allSuppliers as $supplier) {
-            $paidPkr = $supplier->supplierPayments()->sum('pkr_amount');
-            $purchasePkr = $supplier->purchases()->sum('pkr_amount');
+            $purchases = $supplier->purchases();
+            $payments = $supplier->supplierPayments();
+            if ($from) $purchases->whereDate('purchase_date', '>=', $from);
+            if ($to) $purchases->whereDate('purchase_date', '<=', $to);
+            if ($from) $payments->whereDate('payment_date', '>=', $from);
+            if ($to) $payments->whereDate('payment_date', '<=', $to);
+            $paidPkr = $payments->sum('pkr_amount');
+            $purchasePkr = $purchases->sum('pkr_amount');
             $totalPaidPkr += $paidPkr;
             $totalPurchasePkr += $purchasePkr;
         }
         $totalPendingPkr = max($totalPurchasePkr - $totalPaidPkr, 0);
-        return view('suppliers.index', compact('suppliers', 'totalSuppliers', 'totalPaidPkr', 'totalPendingPkr', 'totalPurchasePkr'));
+        return view('suppliers.index', compact('suppliers', 'totalSuppliers', 'totalPaidPkr', 'totalPendingPkr', 'totalPurchasePkr', 'from', 'to'));
     }
 
     /**
@@ -167,9 +175,9 @@ class SupplierController extends Controller
         $exchangeRate = $request->exchange_rate_to_pkr ?? 1.0;
         if (strtoupper($currencyCode) === 'PKR' || empty($currencyCode)) {
             $pkrAmount = $amount;
-            $exchangeRate = 1.0;
+        $exchangeRate = 1.0;
         } else {
-            $pkrAmount = $amount * $exchangeRate;
+                    $pkrAmount = $amount * $exchangeRate;
         }
         \App\Models\SupplierPayment::create([
             'supplier_id' => $supplierId,
@@ -233,6 +241,9 @@ class SupplierController extends Controller
             $totalPurchase = $purchases->sum('total_amount');
             $totalPaid = $payments->sum('amount');
             $balance = $totalPurchase - $totalPaid;
+            $totalPurchasePkr = $purchases->sum('pkr_amount');
+            $totalPaidPkr = $payments->sum('pkr_amount');
+            $balancePkr = $totalPurchasePkr - $totalPaidPkr;
             return [
                 'name' => $supplier->supplier_name,
                 'country' => $supplier->country,
@@ -241,11 +252,14 @@ class SupplierController extends Controller
                 'total_purchase' => $totalPurchase,
                 'total_paid' => $totalPaid,
                 'balance' => $balance,
+                'total_purchase_pkr' => $totalPurchasePkr,
+                'total_paid_pkr' => $totalPaidPkr,
+                'balance_pkr' => $balancePkr,
             ];
         });
-        $totalPurchase = $supplierSummaries->sum('total_purchase');
-        $totalPaid = $supplierSummaries->sum('total_paid');
-        $totalBalance = $supplierSummaries->sum('balance');
+        $totalPurchase = $supplierSummaries->sum('total_purchase_pkr');
+        $totalPaid = $supplierSummaries->sum('total_paid_pkr');
+        $totalBalance = $supplierSummaries->sum('balance_pkr');
         return view('suppliers.print_all', compact('supplierSummaries', 'company', 'totalPurchase', 'totalPaid', 'totalBalance', 'from', 'to'));
     }
 
@@ -254,6 +268,25 @@ class SupplierController extends Controller
         $payment = \App\Models\SupplierPayment::where('supplier_id', $supplierId)->where('id', $paymentId)->firstOrFail();
         $payment->delete();
         return back()->with('success', 'Payment deleted successfully.');
+    }
+
+    /**
+     * Display a listing of soft-deleted suppliers.
+     */
+    public function deletedSuppliers()
+    {
+        $deletedSuppliers = Supplier::onlyTrashed()->get();
+        return view('suppliers.deleted', compact('deletedSuppliers'));
+    }
+
+    /**
+     * Restore a soft-deleted supplier.
+     */
+    public function restore($id)
+    {
+        $supplier = Supplier::withTrashed()->findOrFail($id);
+        $supplier->restore();
+        return redirect()->route('recycle.bin')->with('success', 'Supplier restored successfully.');
     }
 
     // Helper to get currency rate to PKR with fallback and debug logging

@@ -90,7 +90,7 @@ class PurchaseController extends Controller
             $currencyCode = $supplier->currency['code'] ?? 'USD';
             $exchangeRate = $request->exchange_rate_to_pkr;
             if (!$exchangeRate || $exchangeRate <= 0) {
-                $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
             }
             $exchangeRate = (float) $exchangeRate;
             Log::debug('PurchaseController: currencyCode', ['currencyCode' => $currencyCode]);
@@ -193,7 +193,7 @@ class PurchaseController extends Controller
             $currencyCode = $supplier->currency['code'] ?? 'USD';
             $exchangeRate = $request->exchange_rate_to_pkr;
             if (!$exchangeRate || $exchangeRate <= 0) {
-                $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
+            $exchangeRate = Supplier::getCurrencyRateToPKR($currencyCode);
             }
             $exchangeRate = (float) $exchangeRate;
             Log::debug('PurchaseController (update): currencyCode', ['currencyCode' => $currencyCode]);

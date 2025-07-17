@@ -11,6 +11,33 @@
         </div>
 
         <div id="print-section">
+            <!-- Print Header -->
+            <div class="d-none d-print-block" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2.5px solid #b71c1c; padding: 24px 32px 12px 32px;">
+                    <div style="display: flex; align-items: center;">
+                        @if(Auth::user() && Auth::user()->company && Auth::user()->company->logo)
+                            <img src="{{ asset('storage/' . Auth::user()->company->logo) }}" alt="Logo" style="height: 60px; margin-right: 18px;">
+                        @endif
+                        <span style="font-size: 2rem; font-weight: bold; color: #b71c1c;">{{ Auth::user()->company->name ?? config('app.name') }}</span>
+                    </div>
+                    <div style="text-align: right; font-size: 1rem; color: #333; line-height: 1.7;">
+                        @if(Auth::user() && Auth::user()->company && Auth::user()->company->address)
+                            <div><i class="bi bi-geo-alt" style="color:#b71c1c; margin-right:4px;"></i> {{ Auth::user()->company->address }}</div>
+                        @endif
+                        @if(Auth::user() && Auth::user()->company && Auth::user()->company->cell_no)
+                            <div><i class="bi bi-telephone" style="color:#b71c1c; margin-right:4px;"></i> {{ Auth::user()->company->cell_no }}</div>
+                        @endif
+                        @if(Auth::user() && Auth::user()->company && Auth::user()->company->email)
+                            <div><i class="bi bi-envelope" style="color:#b71c1c; margin-right:4px;"></i> {{ Auth::user()->company->email }}</div>
+                        @endif
+                        @if(Auth::user() && Auth::user()->company && Auth::user()->company->website)
+                            <div><i class="bi bi-globe" style="color:#b71c1c; margin-right:4px;"></i> {{ Auth::user()->company->website }}</div>
+                        @endif
+                    </div>
+                </div>
+                <div style="font-size: 1.3rem; color: #b71c1c; font-weight: bold; margin: 32px 0 16px 0; text-align:center;">Current Inventory Stock</div>
+            </div>
+            <!-- End Print Header -->
             <table class="table table-bordered table-striped" id="stockTable">
                 <thead class="table-light">
                     <tr>
@@ -21,6 +48,7 @@
                     <tr>
                         <th>Item Name</th>
                         <th>Unit</th>
+                        <th>Sold Unit</th>
                         <th>Status</th>
                     </tr>
 
@@ -30,6 +58,7 @@
                         <tr>
                             <td>{{ $item->item_name }}</td>
                             <td>{{ $item->unit }}</td>
+                            <td>{{ $item->sold_unit }}</td>
                             <td>
                                 @if ($item->status === 'inactive')
                                     <span class="badge bg-secondary">Inactive</span>

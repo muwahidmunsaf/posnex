@@ -56,10 +56,10 @@
     <table class="summary-table">
         <tr><td class="label">Customer Name:</td><td class="value">{{ $customer->name }}</td></tr>
         <tr><td class="label">Type:</td><td class="value">{{ ucfirst($customer->type) }}</td></tr>
-        <tr><td class="label">Cell No:</td><td class="value">{{ $customer->cel_no }}</td></tr>
-        <tr><td class="label">Email:</td><td class="value">{{ $customer->email }}</td></tr>
-        <tr><td class="label">Address:</td><td class="value">{{ $customer->address }}</td></tr>
-        <tr><td class="label">City:</td><td class="value">{{ $customer->city }}</td></tr>
+        <tr><td class="label">Cell No:</td><td class="value">{{ $customer->cel_no ?: 'N/A' }}</td></tr>
+        <tr><td class="label">Email:</td><td class="value">{{ $customer->email ?: 'N/A' }}</td></tr>
+        <tr><td class="label">Address:</td><td class="value">{{ $customer->address ?: 'N/A' }}</td></tr>
+        <tr><td class="label">City:</td><td class="value">{{ $customer->city ?: 'N/A' }}</td></tr>
         <tr><td class="label">Total Sales:</td><td class="value">{{ number_format($totalSales, 2) }}</td></tr>
         <tr><td class="label">Total Returns:</td><td class="value">{{ number_format($totalReturns, 2) }}</td></tr>
         <tr><td class="label">Total Received:</td><td class="value">{{ number_format($totalPaid, 2) }}</td></tr>
@@ -158,5 +158,10 @@
             @endforeach
         </tbody>
     </table>
+    @if($customer->company && $customer->company->logo)
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:0; opacity:0.07; pointer-events:none; width:60vw; max-width:600px;">
+        <img src="{{ asset('storage/' . $customer->company->logo) }}" alt="Watermark Logo" style="width:100%; height:auto;">
+    </div>
+    @endif
 </body>
 </html> 

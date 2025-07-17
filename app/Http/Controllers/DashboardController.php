@@ -60,7 +60,7 @@ class DashboardController extends Controller
         $returnItemsCount = $returnsQuery->sum('quantity');
         $netSale = $totalSales - $totalReturns;
 
-        // Payments Received (sales + direct payments)
+        // Payments Received (sales + direct payments + shopkeeper payments)
         $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId);
         if ($from) $paymentsReceivedViaSales->where('created_at', '>=', $from);
         if ($to) $paymentsReceivedViaSales->where('created_at', '<=', $to);
@@ -77,7 +77,13 @@ class DashboardController extends Controller
         if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
         if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
         $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
-        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
+        // Add shopkeeper payments
+        $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
+            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+        if ($from) $paymentsReceivedViaShopkeepers->where('transaction_date', '>=', $from);
+        if ($to) $paymentsReceivedViaShopkeepers->where('transaction_date', '<=', $to);
+        $paymentsReceivedViaShopkeepers = $paymentsReceivedViaShopkeepers->sum('total_amount');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments + $paymentsReceivedViaShopkeepers;
 
         // Total received via direct payments (for this company)
         $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
@@ -96,7 +102,14 @@ class DashboardController extends Controller
         $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
         if ($from) $pendingBalanceQuery->where('created_at', '>=', $from);
         if ($to) $pendingBalanceQuery->where('created_at', '<=', $to);
-        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        $pendingBalanceSales = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        // Subtract shopkeeper payments
+        $shopkeeperPayments = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
+            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+        if ($from) $shopkeeperPayments->where('transaction_date', '>=', $from);
+        if ($to) $shopkeeperPayments->where('transaction_date', '<=', $to);
+        $shopkeeperPayments = $shopkeeperPayments->sum('total_amount');
+        $pendingBalance = $pendingBalanceSales - $shopkeeperPayments;
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
@@ -214,7 +227,7 @@ class DashboardController extends Controller
         $returnItemsCount = $returnsQuery->sum('quantity');
         $netSale = $totalSales - $totalReturns;
 
-        // Payments Received (sales + direct payments)
+        // Payments Received (sales + direct payments + shopkeeper payments)
         $paymentsReceivedViaSales = \App\Models\Sale::where('company_id', $companyId);
         if ($from) $paymentsReceivedViaSales->where('created_at', '>=', $from);
         if ($to) $paymentsReceivedViaSales->where('created_at', '<=', $to);
@@ -231,7 +244,13 @@ class DashboardController extends Controller
         if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
         if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
         $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
-        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments;
+        // Add shopkeeper payments
+        $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
+            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+        if ($from) $paymentsReceivedViaShopkeepers->where('transaction_date', '>=', $from);
+        if ($to) $paymentsReceivedViaShopkeepers->where('transaction_date', '<=', $to);
+        $paymentsReceivedViaShopkeepers = $paymentsReceivedViaShopkeepers->sum('total_amount');
+        $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments + $paymentsReceivedViaShopkeepers;
 
         // Total received via direct payments (for this company)
         $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {

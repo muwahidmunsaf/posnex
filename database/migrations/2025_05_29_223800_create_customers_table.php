@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('cnic')->nullable(); // Format: 00000-0000000-0
             $table->text('address')->nullable();
             $table->unsignedBigInteger('company_id');
+            $table->softDeletes();
             $table->timestamps();
 
             // Foreign key constraint assuming companies table exists
