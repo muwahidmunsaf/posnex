@@ -42,7 +42,7 @@ class CloudBackupController extends Controller
                 'folder_id' => null, // Optionally set via UI later
             ]
         );
-        return redirect()->route('cloud-backup.settings')->with('success', 'Google Drive connected successfully!');
+        return redirect()->route('admin.csv-backup')->with('success', 'Google Drive connected successfully!');
     }
 
     // POST /manage-backup/cloud-settings (cloud-backup.settings.update)
@@ -54,12 +54,12 @@ class CloudBackupController extends Controller
         ]);
         $cloudBackup = CloudBackup::where('user_id', Auth::id())->where('provider', 'google')->first();
         if (!$cloudBackup) {
-            return redirect()->route('cloud-backup.settings')->with('error', 'No Google Drive account connected.');
+            return redirect()->route('admin.csv-backup')->with('error', 'No Google Drive account connected.');
         }
         $cloudBackup->update([
             'frequency' => $request->frequency,
             'time' => $request->time,
         ]);
-        return redirect()->route('cloud-backup.settings')->with('success', 'Backup schedule updated successfully.');
+        return redirect()->route('admin.csv-backup')->with('success', 'Backup schedule updated successfully.');
     }
 }

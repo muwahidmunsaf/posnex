@@ -1,12 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Application;
-
-$app = new Application(
+$app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
-// Bind important interfaces
 $app->singleton(
     Illuminate\Contracts\Http\Kernel::class,
     App\Http\Kernel::class
@@ -20,6 +17,11 @@ $app->singleton(
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
     App\Exceptions\Handler::class
+);
+
+$app->singleton(
+    Illuminate\Contracts\Foundation\MaintenanceMode::class,
+    Illuminate\Foundation\FileBasedMaintenanceMode::class
 );
 
 return $app;

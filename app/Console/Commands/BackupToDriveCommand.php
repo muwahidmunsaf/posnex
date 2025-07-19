@@ -11,7 +11,7 @@ class BackupToDriveCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'backup:drive';
+    protected $signature = 'app:backup-to-drive-command';
 
     /**
      * The console command description.
@@ -25,7 +25,6 @@ class BackupToDriveCommand extends Command
      */
     public function handle()
     {
-        \Log::info('BackupToDriveCommand: handle() called');
-        $this->info('BackupToDriveCommand executed.');
+        //
     }
 }

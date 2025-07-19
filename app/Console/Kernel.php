@@ -22,7 +22,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('backup:drive')->everyMinute();
+        $schedule->command('cloud:backup-test')->everyMinute();
     }
 
     /**

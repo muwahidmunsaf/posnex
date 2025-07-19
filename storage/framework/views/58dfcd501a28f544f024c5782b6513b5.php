@@ -1,13 +1,13 @@
-@php
+<?php
     $errors = $errors ?? session('errors') ?? new \Illuminate\Support\ViewErrorBag;
-@endphp
+?>
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ config('app.name', 'POS Login') }}</title>
+    <title><?php echo e(config('app.name', 'POS Login')); ?></title>
 
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -68,24 +68,24 @@
         <div class="login-card">
             <div class="text-center mb-4">
                 <div class="brand-logo text-center mb-3">
-                    <img src="{{ asset('logo.png') }}" alt="Irshad Autos Logo" style="height: 60px;">
+                    <img src="<?php echo e(asset('logo.png')); ?>" alt="Irshad Autos Logo" style="height: 60px;">
                     <h1 class="text-3xl font-bold text-center text-danger">Irshad Autos</h1>
                 </div>
                 <small class="text-muted">Please login to continue</small>
             </div>
 
-            @if ($errors->any())
+            <?php if($errors->any()): ?>
                 <div class="alert alert-danger py-1">
                     <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li class="small">{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li class="small"><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
+            <form method="POST" action="<?php echo e(route('login')); ?>">
+                <?php echo csrf_field(); ?>
 
                 <div class="mb-3 input-group">
                     <i class="bi bi-envelope form-icon"></i>
@@ -101,9 +101,7 @@
                     <button type="submit" class="btn btn-danger">Login <i class="bi bi-box-arrow-in-right ms-1"></i></button>
                 </div>
 
-                {{-- <div class="text-center">
-                    <a href="{{ route('password.request') }}" class="text-decoration-none small">Forgot password?</a>
-                </div> --}}
+                
             </form>
         </div>
     </main>
@@ -113,3 +111,4 @@
 </body>
 
 </html>
+<?php /**PATH C:\Users\HP\Desktop\posnex\resources\views/auth/login.blade.php ENDPATH**/ ?>

@@ -28,15 +28,29 @@ class CloudBackupToDrive extends Command
      */
     public function handle()
     {
+        $this->info('Checking cloud backup schedules...');
         \Log::info('CloudBackupToDrive: handle() called');
         $now = Carbon::now();
         $cloudBackups = CloudBackup::where('provider', 'google')->get();
+        
+        if ($cloudBackups->isEmpty()) {
+            $this->info('No cloud backup schedules found.');
+            return;
+        }
+        
+        $this->info("Found {$cloudBackups->count()} cloud backup schedule(s).");
+        
         foreach ($cloudBackups as $cloudBackup) {
-            if (!$cloudBackup->refresh_token) continue;
-            // Check if backup is due
-            $due = false;
+            if (!$cloudBackup->refresh_token) {
+                $this->warn("Skipping {$cloudBackup->email} - no refresh token configured.");
+                \Log::info('CloudBackupToDrive: skipping user without refresh token', ['email' => $cloudBackup->email]);
+                continue;
+            }
+            
+            // Check if backup is due (remove the forced $due = true)
             $last = $cloudBackup->last_run_at ? Carbon::parse($cloudBackup->last_run_at) : null;
             $targetTime = Carbon::parse($now->format('Y-m-d') . ' ' . $cloudBackup->time);
+            
             // Add debug logging for schedule logic
             \Log::info('CloudBackupToDrive: schedule check', [
                 'user_id' => $cloudBackup->user_id,
@@ -46,6 +60,8 @@ class CloudBackupToDrive extends Command
                 'targetTime' => $targetTime->toDateTimeString(),
                 'frequency' => $cloudBackup->frequency,
             ]);
+            
+            $due = false;
             if ($cloudBackup->frequency === 'daily') {
                 $due = (!$last || $last->lt($targetTime)) && $now->gte($targetTime);
             } elseif ($cloudBackup->frequency === 'weekly') {
@@ -53,43 +69,64 @@ class CloudBackupToDrive extends Command
             } elseif ($cloudBackup->frequency === 'monthly') {
                 $due = (!$last || $last->lt($targetTime->copy()->subMonth())) && $now->gte($targetTime) && $now->day === $targetTime->day;
             }
+            
             \Log::info('CloudBackupToDrive: due result', [
                 'user_id' => $cloudBackup->user_id,
                 'due' => $due,
             ]);
-            if (!$due) continue;
-            // Generate backup ZIP (reuse logic from AdminBackupController@fullBackup)
+            
+            if (!$due) {
+                $nextRun = $last ? $last->addDay() : $targetTime;
+                $this->info("Backup not due for {$cloudBackup->email} ({$cloudBackup->frequency} at {$cloudBackup->time}). Next check: {$nextRun->format('Y-m-d H:i')}");
+                \Log::info('CloudBackupToDrive: backup not due, skipping', ['email' => $cloudBackup->email]);
+                continue;
+            }
+            
+            $this->info("Starting backup for {$cloudBackup->email}...");
+            
+            // Generate backup ZIP
             $backupDir = storage_path('full_backup_' . uniqid());
             mkdir($backupDir);
-            $db = config('database.connections.mysql');
-            $dbFile = $backupDir . '/database_backup.sql';
-            $cmd = sprintf(
-                'mysqldump --user=%s --password=%s --host=%s %s > %s',
-                escapeshellarg($db['username']),
-                escapeshellarg($db['password']),
-                escapeshellarg($db['host']),
-                escapeshellarg($db['database']),
-                escapeshellarg($dbFile)
-            );
-            @exec($cmd);
-            $storageSource = storage_path('app');
-            $storageDest = $backupDir . '/files';
-            $this->recurseCopy($storageSource, $storageDest);
-            $zipPath = storage_path('app/full_backup_' . date('Ymd_His') . '_' . $cloudBackup->user_id . '.zip');
-            $zip = new \ZipArchive();
-            $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($backupDir));
-            foreach ($files as $name => $file) {
-                if (!$file->isDir()) {
-                    $filePath = $file->getRealPath();
-                    $relPath = substr($filePath, strlen($backupDir) + 1);
-                    $zip->addFile($filePath, $relPath);
-                }
-            }
-            $zip->close();
-            $this->recurseDelete($backupDir);
-            // Upload to Google Drive using user's refresh token
+            
             try {
+                $this->info("Creating database backup...");
+                $db = config('database.connections.mysql');
+                $dbFile = $backupDir . '/database_backup.sql';
+                $cmd = sprintf(
+                    'mysqldump --user=%s --password=%s --host=%s %s > %s',
+                    escapeshellarg($db['username']),
+                    escapeshellarg($db['password']),
+                    escapeshellarg($db['host']),
+                    escapeshellarg($db['database']),
+                    escapeshellarg($dbFile)
+                );
+                @exec($cmd);
+                
+                $this->info("Copying application files...");
+                $storageSource = storage_path('app');
+                $storageDest = $backupDir . '/files';
+                $this->recurseCopy($storageSource, $storageDest);
+                
+                $this->info("Creating ZIP archive...");
+                $zipPath = storage_path('app/full_backup_' . date('Ymd_His') . '_' . $cloudBackup->user_id . '.zip');
+                $zip = new \ZipArchive();
+                $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+                
+                $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($backupDir));
+                foreach ($files as $name => $file) {
+                    if (!$file->isDir()) {
+                        $filePath = $file->getRealPath();
+                        $relPath = substr($filePath, strlen($backupDir) + 1);
+                        $zip->addFile($filePath, $relPath);
+                    }
+                }
+                $zip->close();
+                
+                // Clean up temp directory
+                $this->recurseDelete($backupDir);
+                
+                $this->info("Uploading to Google Drive...");
+                // Upload to Google Drive using user's refresh token
                 $client = new \Google_Client();
                 $client->setClientId(config('filesystems.disks.google.clientId'));
                 $client->setClientSecret(config('filesystems.disks.google.clientSecret'));
@@ -97,25 +134,48 @@ class CloudBackupToDrive extends Command
                 $client->setPrompt('consent');
                 $client->setScopes(['https://www.googleapis.com/auth/drive.file']);
                 $client->refreshToken($cloudBackup->refresh_token);
+                
                 $service = new \Google_Service_Drive($client);
                 $fileMetadata = new \Google_Service_Drive_DriveFile([
                     'name' => basename($zipPath),
                     'parents' => $cloudBackup->folder_id ? [$cloudBackup->folder_id] : null,
                 ]);
+                
                 $content = file_get_contents($zipPath);
                 $service->files->create($fileMetadata, [
                     'data' => $content,
                     'mimeType' => 'application/zip',
                     'uploadType' => 'multipart',
                 ]);
+                
+                // Update last run time
                 $cloudBackup->last_run_at = $now;
                 $cloudBackup->save();
-                $this->info("Backup uploaded to Google Drive for user {$cloudBackup->email}");
+                
+                // Clean up ZIP file after successful upload
+                @unlink($zipPath);
+                
+                $this->info("✅ Backup uploaded to Google Drive for user {$cloudBackup->email}");
+                \Log::info('CloudBackupToDrive: backup completed successfully', ['email' => $cloudBackup->email]);
+                
             } catch (\Exception $e) {
-                $this->error("Failed to upload backup for user {$cloudBackup->email}: " . $e->getMessage());
+                // Clean up on error
+                if (isset($backupDir) && file_exists($backupDir)) {
+                    $this->recurseDelete($backupDir);
+                }
+                if (isset($zipPath) && file_exists($zipPath)) {
+                    @unlink($zipPath);
+                }
+                
+                $this->error("❌ Failed to upload backup for user {$cloudBackup->email}: " . $e->getMessage());
+                \Log::error('CloudBackupToDrive: backup failed', [
+                    'email' => $cloudBackup->email,
+                    'error' => $e->getMessage()
+                ]);
             }
-            @unlink($zipPath);
         }
+        
+        $this->info('Cloud backup check completed.');
     }
 
     // Copy logic from AdminBackupController
@@ -127,9 +187,25 @@ class CloudBackupToDrive extends Command
             if (($file != '.') && ($file != '..')) {
                 $srcPath = $src . '/' . $file;
                 $dstPath = $dst . '/' . $file;
-                if (is_dir($srcPath) && strpos($file, 'full_backup_') === 0) {
+                
+                // Skip backup files and directories to prevent snowball effect
+                if (is_dir($srcPath) && (
+                    strpos($file, 'full_backup_') === 0 ||
+                    strpos($file, 'backup_') === 0 ||
+                    $file === 'backups'
+                )) {
                     continue;
                 }
+                
+                // Skip backup ZIP files
+                if (is_file($srcPath) && (
+                    strpos($file, 'full_backup_') === 0 ||
+                    strpos($file, 'backup_') === 0 ||
+                    strpos($file, '.zip') !== false
+                )) {
+                    continue;
+                }
+                
                 if (is_dir($srcPath)) {
                     $this->recurseCopy($srcPath, $dstPath);
                 } else {
@@ -139,6 +215,7 @@ class CloudBackupToDrive extends Command
         }
         closedir($dir);
     }
+    
     private function recurseDelete($dir)
     {
         if (!file_exists($dir)) return;

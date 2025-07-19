@@ -1,6 +1,6 @@
 # Irshad Autos POS System
 
-A modern, full-featured Point of Sale (POS) and business management web application for retailers, distributors, and shopkeepers. Built with Laravel, it streamlines sales, inventory, HR, reporting, and backup operations for small and medium businesses.
+A modern, full-featured Point of Sale (POS) and business management web application for retailers, distributors, and shopkeepers. Built with Irshad Autos (Laravel framework), it streamlines sales, inventory, HR, reporting, and backup operations for small and medium businesses.
 
 ---
 
