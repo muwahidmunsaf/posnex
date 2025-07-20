@@ -56,16 +56,43 @@ class AdminResetController extends Controller
         ];
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            // Truncate in dependency order: child tables first
+            $truncateOrder = [
+                'purchase_items',
+                'purchases',
+                'inventory_sales',
+                'sales',
+                'shopkeeper_transactions',
+                'shopkeepers',
+                'distributor_payments',
+                'distributors',
+                'external_purchases',
+                'external_sales',
+                'salary_payments',
+                'employees',
+                'payments',
+                'customers',
+                'suppliers',
+                'expenses',
+                'activity_logs',
+                'returns',
+                'inventory',
+            ];
+            $selectedTables = [];
             if (in_array('all', $selected)) {
-                foreach ($allTables as $table) {
-                    \DB::table($table)->truncate();
-                }
+                $selectedTables = $truncateOrder;
             } else {
-                foreach ($selected as $module) {
-                    if (isset($allTables[$module])) {
-                        \DB::table($allTables[$module])->truncate();
+                // Only include selected tables, but in the correct order
+                foreach ($truncateOrder as $table) {
+                    foreach ($allTables as $key => $tbl) {
+                        if (in_array($key, $selected) && $tbl === $table) {
+                            $selectedTables[] = $table;
+                        }
                     }
                 }
+            }
+            foreach ($selectedTables as $table) {
+                \DB::table($table)->truncate();
             }
             \DB::statement('SET FOREIGN_KEY_CHECKS=1');
             return redirect()->back()->with('success', 'Selected data has been reset.');
