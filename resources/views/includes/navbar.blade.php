@@ -27,6 +27,20 @@
                     <li class="nav-item">
                         <a class="btn mt-2 me-3 btn-danger" href="{{ route('sales.create') }}">Point of Sale (POS)</a>
                     </li>
+                    <!-- Reminder Bell Icon -->
+                    <li class="nav-item dropdown" id="reminder-bell-dropdown">
+                        <a class="nav-link position-relative" href="#" id="reminderBell" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell" style="font-size: 1.5rem;"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="reminder-badge" style="display:none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reminderBell" style="min-width: 350px; max-width: 400px;">
+                            <li class="dropdown-header">Reminders</li>
+                            <li id="reminder-list-empty"><span class="dropdown-item-text text-muted">No due reminders.</span></li>
+                            <div id="reminder-list"></div>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a href="{{ route('notes.index') }}" class="dropdown-item text-center">View All Notes/Reminders</a></li>
+                        </ul>
+                    </li>
                     @auth
                         <li class="nav-item dropdown dropdown-hover">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"

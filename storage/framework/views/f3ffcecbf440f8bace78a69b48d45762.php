@@ -167,6 +167,13 @@
             <?php endif; ?>
 
             
+            <li class="nav-item mt-2">
+                <a href="<?php echo e(route('notes.index')); ?>" class="nav-link <?php echo e(request()->is('notes*') ? 'active' : 'text-dark'); ?>">
+                    <i class="bi bi-bell me-2"></i> Notes / Reminders
+                    </a>
+                </li>
+
+            
             <?php if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'])): ?>
                 <li class="nav-item mt-2">
                     <a class="nav-link d-flex justify-content-between align-items-center <?php echo e(request()->is('users*') || request()->is('activity-logs*') || request()->is('recycle-bin*') || request()->is('manage-backup*') || request()->is('admin/reset-data*') ? '' : 'collapsed'); ?>"
@@ -190,13 +197,13 @@
                             <li>
                                 <a href="<?php echo e(route('recycle.bin')); ?>" class="nav-link <?php echo e(request()->is('recycle-bin*') ? 'active' : 'text-dark'); ?>">
                                     <i class="bi bi-trash3 me-2"></i> Recycle Bin
-                                </a>
-                            </li>
+                    </a>
+                </li>
                             <li>
                                 <a href="/manage-backup" class="nav-link <?php echo e(request()->is('manage-backup*') ? 'active' : 'text-dark'); ?>">
                                     <i class="bi bi-cloud-arrow-up me-2"></i> Backup
-                                </a>
-                            </li>
+                    </a>
+                </li>
                             <li>
                                 <a href="<?php echo e(route('admin.reset-data')); ?>" class="nav-link <?php echo e(request()->is('admin/reset-data*') ? 'active' : 'text-dark'); ?>">
                                     <i class="bi bi-arrow-repeat me-2"></i> Reset Data

@@ -101,9 +101,9 @@
                     <button type="submit" class="btn btn-danger">Login <i class="bi bi-box-arrow-in-right ms-1"></i></button>
                 </div>
 
-                {{-- <div class="text-center">
-                    <a href="{{ route('password.request') }}" class="text-decoration-none small">Forgot password?</a>
-                </div> --}}
+                <div class="text-center mb-2">
+                    <a href="{{ route('password.request') }}" class="text-decoration-none small text-danger">Forgot password?</a>
+                </div>
             </form>
         </div>
     </main>

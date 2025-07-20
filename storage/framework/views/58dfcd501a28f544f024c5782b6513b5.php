@@ -101,7 +101,9 @@
                     <button type="submit" class="btn btn-danger">Login <i class="bi bi-box-arrow-in-right ms-1"></i></button>
                 </div>
 
-                
+                <div class="text-center mb-2">
+                    <a href="<?php echo e(route('password.request')); ?>" class="text-decoration-none small text-danger">Forgot password?</a>
+                </div>
             </form>
         </div>
     </main>

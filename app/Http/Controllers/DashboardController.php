@@ -238,6 +238,13 @@ class DashboardController extends Controller
         if ($from) $totalPurchasesPKRQuery->where('created_at', '>=', $from);
         if ($to) $totalPurchasesPKRQuery->where('created_at', '<=', $to);
         $totalPurchases = $totalPurchasesPKRQuery->sum('pkr_amount');
+        // Add this for internal purchases
+        $totalInternalPurchases = $totalPurchases;
+        // Add this for external purchases
+        $totalExternalPurchasesQuery = \App\Models\ExternalPurchase::where('company_id', $companyId);
+        if ($from) $totalExternalPurchasesQuery->where('created_at', '>=', $from);
+        if ($to) $totalExternalPurchasesQuery->where('created_at', '<=', $to);
+        $totalExternalPurchases = $totalExternalPurchasesQuery->sum('purchase_amount');
 
         // Returns
         $returnsQuery = \App\Models\ReturnTransaction::whereHas('sale', function($q) use ($companyId, $from, $to) {
@@ -355,6 +362,8 @@ class DashboardController extends Controller
             'paymentsReceived',
             'pendingBalance',
             'totalPurchases',
+            'totalInternalPurchases',
+            'totalExternalPurchases',
             'totalExpenses',
             'inventoryCount',
             'accountsPayablePKR',

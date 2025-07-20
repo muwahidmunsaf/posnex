@@ -154,7 +154,7 @@ productList.addEventListener('click', function(e) {
     // Close modal and ensure inputs are accessible
     const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
     if (modal) {
-      modal.hide();
+    modal.hide();
       // Add a small delay to ensure modal is fully closed
       setTimeout(() => {
         console.log('Modal should be closed now');

@@ -166,6 +166,13 @@
             </li>
             @endif
 
+            {{-- Notes/Reminders --}}
+            <li class="nav-item mt-2">
+                <a href="{{ route('notes.index') }}" class="nav-link {{ request()->is('notes*') ? 'active' : 'text-dark' }}">
+                    <i class="bi bi-bell me-2"></i> Notes / Reminders
+                    </a>
+                </li>
+
             {{-- Settings (Admin Tools) --}}
             @if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin']))
                 <li class="nav-item mt-2">
@@ -190,13 +197,13 @@
                             <li>
                                 <a href="{{ route('recycle.bin') }}" class="nav-link {{ request()->is('recycle-bin*') ? 'active' : 'text-dark' }}">
                                     <i class="bi bi-trash3 me-2"></i> Recycle Bin
-                                </a>
-                            </li>
+                    </a>
+                </li>
                             <li>
                                 <a href="/manage-backup" class="nav-link {{ request()->is('manage-backup*') ? 'active' : 'text-dark' }}">
                                     <i class="bi bi-cloud-arrow-up me-2"></i> Backup
-                                </a>
-                            </li>
+                    </a>
+                </li>
                             <li>
                                 <a href="{{ route('admin.reset-data') }}" class="nav-link {{ request()->is('admin/reset-data*') ? 'active' : 'text-dark' }}">
                                     <i class="bi bi-arrow-repeat me-2"></i> Reset Data

@@ -22,6 +22,11 @@ use App\Http\Controllers\DistributorProductController;
 use App\Http\Controllers\ShopkeeperTransactionController;
 use App\Models\Supplier;
 use App\Http\Controllers\AdminBackupController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
+use App\Models\Note;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
 
 
 Route::get('/', function () {
@@ -251,6 +256,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('external-purchases', App\Http\Controllers\ExternalPurchaseController::class);
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::resource('notes', 'App\\Http\\Controllers\\NoteController');
+});
+
 Route::get('/api/exchange-rate/{currency}', function($currency) {
     $rate = Supplier::getCurrencyRateToPKR($currency);
     return response()->json(['rate' => $rate]);
@@ -276,4 +285,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/reset-data', [App\Http\Controllers\AdminResetController::class, 'showResetForm'])->name('admin.reset-data');
     Route::post('/admin/reset-data', [App\Http\Controllers\AdminResetController::class, 'resetData'])->name('admin.reset-data.post');
 });
+
+Route::middleware(['auth'])->get('/api/due-reminders', function() {
+    $now = Carbon::now();
+    $reminders = Note::where('user_id', Auth::id())
+        ->where('is_done', false)
+        ->whereNotNull('reminder_time')
+        ->where('reminder_time', '<=', $now)
+        ->orderBy('reminder_time', 'asc')
+        ->get(['id', 'title', 'note', 'reminder_time']);
+    return response()->json($reminders);
+});
+
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 
