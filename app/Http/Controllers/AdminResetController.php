@@ -75,7 +75,7 @@ class AdminResetController extends Controller
                 'suppliers',
                 'expenses',
                 'activity_logs',
-                'returns',
+                'return_transactions', // fixed table name
                 'inventory',
             ];
             $selectedTables = [];
