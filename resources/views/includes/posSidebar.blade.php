@@ -43,6 +43,10 @@
             </li>
         </ul>
 
+        <ul class="nav nav-pills flex-column mb-auto">
+            {{-- Remove Reset Data from this sidebar --}}
+        </ul>
+
         <hr>
 
         <div class="text-muted small">

@@ -180,8 +180,13 @@
                 </tr>
             <tr class="grand">
                 <td class="grand">Grand Total</td>
-                <td class="grand">{{ number_format(($grandTotal + ($sale->tax_amount ?? 0) - ($sale->discount ?? 0) + ($previousOutstanding ?? 0)), 2) }}</td>
-                </tr>
+                <td class="grand">
+                    @php
+                        $netDue = ($grandTotal + ($sale->tax_amount ?? 0) - ($sale->discount ?? 0) + ($previousOutstanding ?? 0)) - ($amountReceived ?? 0);
+                    @endphp
+                    {{ number_format($netDue, 2) }}
+                </td>
+            </tr>
             </table>
     </div>
     <div style="clear:both;"></div>

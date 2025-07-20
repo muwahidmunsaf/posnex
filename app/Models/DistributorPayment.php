@@ -16,7 +16,8 @@ class DistributorPayment extends Model
         'description',
         'payment_date',
         'status',
-        'reference_no'
+        'reference_no',
+        'expense_id',
     ];
 
     protected $casts = [
@@ -27,5 +28,10 @@ class DistributorPayment extends Model
     public function distributor()
     {
         return $this->belongsTo(Distributor::class);
+    }
+
+    public function expense()
+    {
+        return $this->belongsTo(Expense::class);
     }
 }

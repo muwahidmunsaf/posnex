@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('suppliers', 'country')) {
-            Schema::table('suppliers', function (Blueprint $table) {
-                $table->string('country')->nullable()->after('company_id');
-            });
-        }
+        Schema::table('notes', function (Blueprint $table) {
+            //
+        });
     }
 
     /**
@@ -23,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('suppliers', function (Blueprint $table) {
+        Schema::table('notes', function (Blueprint $table) {
             //
         });
     }

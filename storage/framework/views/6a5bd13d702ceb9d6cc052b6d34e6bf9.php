@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Purchase Invoice - {{ $company->name }}</title>
+    <title>Purchase Invoice - <?php echo e($company->name); ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fff; }
@@ -62,22 +62,22 @@
 <body>
     <div class="header">
         <div class="header-left">
-            @if($company->logo)
-                <img src="{{ asset('storage/' . $company->logo) }}" class="logo" alt="Company Logo">
-            @endif
-            <span class="company-name">{{ $company->name }}</span>
+            <?php if($company->logo): ?>
+                <img src="<?php echo e(asset('storage/' . $company->logo)); ?>" class="logo" alt="Company Logo">
+            <?php endif; ?>
+            <span class="company-name"><?php echo e($company->name); ?></span>
         </div>
         <div class="company-details">
-            @if($company->address) <div><i class="bi bi-geo-alt"></i> {{ $company->address }}</div> @endif
-            @if($company->cell_no) <div><i class="bi bi-telephone"></i> {{ $company->cell_no }}</div> @endif
-            @if($company->email) <div><i class="bi bi-envelope"></i> {{ $company->email }}</div> @endif
-            @if($company->website) <div><i class="bi bi-globe"></i> {{ $company->website }}</div> @endif
+            <?php if($company->address): ?> <div><i class="bi bi-geo-alt"></i> <?php echo e($company->address); ?></div> <?php endif; ?>
+            <?php if($company->cell_no): ?> <div><i class="bi bi-telephone"></i> <?php echo e($company->cell_no); ?></div> <?php endif; ?>
+            <?php if($company->email): ?> <div><i class="bi bi-envelope"></i> <?php echo e($company->email); ?></div> <?php endif; ?>
+            <?php if($company->website): ?> <div><i class="bi bi-globe"></i> <?php echo e($company->website); ?></div> <?php endif; ?>
         </div>
     </div>
     <div class="summary-row" style="margin: 24px 32px 0 32px; justify-content: space-between; white-space: nowrap; gap: 16px;">
-        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice Date:</span><span class="value">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d-M-Y') }}</span></span>
-        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Issue Date:</span><span class="value">{{ \Carbon\Carbon::parse($purchase->created_at)->format('d-M-Y') }}</span></span>
-        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice No:</span><span class="value">D{{ str_pad($purchase->id, 3, '0', STR_PAD_LEFT) }}-{{ str_pad($purchase->id, 5, '0', STR_PAD_LEFT) }}</span></span>
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice Date:</span><span class="value"><?php echo e(\Carbon\Carbon::parse($purchase->purchase_date)->format('d-M-Y')); ?></span></span>
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Issue Date:</span><span class="value"><?php echo e(\Carbon\Carbon::parse($purchase->created_at)->format('d-M-Y')); ?></span></span>
+        <span style="white-space: nowrap;"><span style="margin-right:2px; font-weight:bold; color:#b71c1c;">Invoice No:</span><span class="value">D<?php echo e(str_pad($purchase->id, 3, '0', STR_PAD_LEFT)); ?>-<?php echo e(str_pad($purchase->id, 5, '0', STR_PAD_LEFT)); ?></span></span>
     </div>
     <!-- Add Purchase Invoice Title -->
     <div style="text-align:center; margin-top:24px; margin-bottom:8px;">
@@ -85,13 +85,13 @@
     </div>
     <div class="to-block">
         <b>TO</b><br>
-        <span class="label">Name:</span> <span class="value">{{ $purchase->supplier->supplier_name ?? '-' }}</span><br>
-        <span class="label">Phone:</span> <span class="value">{{ $purchase->supplier->cell_no ?? '-' }}</span><br>
-        <span class="label">Address:</span> <span class="value">{{ $purchase->supplier->address ?? '-' }}</span><br>
-        <span class="label">Country:</span> <span class="value">{{ $purchase->supplier->country ?? '-' }}</span><br>
-        @if($purchase->distributor && isset($purchase->distributor->name))
-        <span class="label">Distributor:</span> <span class="value">{{ $purchase->distributor->name }}</span><br>
-        @endif
+        <span class="label">Name:</span> <span class="value"><?php echo e($purchase->supplier->supplier_name ?? '-'); ?></span><br>
+        <span class="label">Phone:</span> <span class="value"><?php echo e($purchase->supplier->cell_no ?? '-'); ?></span><br>
+        <span class="label">Address:</span> <span class="value"><?php echo e($purchase->supplier->address ?? '-'); ?></span><br>
+        <span class="label">Country:</span> <span class="value"><?php echo e($purchase->supplier->country ?? '-'); ?></span><br>
+        <?php if($purchase->distributor && isset($purchase->distributor->name)): ?>
+        <span class="label">Distributor:</span> <span class="value"><?php echo e($purchase->distributor->name); ?></span><br>
+        <?php endif; ?>
     </div>
     <div class="table-container">
         <table>
@@ -105,34 +105,35 @@
                 </tr>
             </thead>
             <tbody>
-                @php $grandTotal = 0; $totalQty = 0; @endphp
-                @foreach($purchase->items as $i => $item)
-                    @php $total = $item->purchase_amount; $grandTotal += $total; $totalQty += $item->quantity; @endphp
+                <?php $grandTotal = 0; $totalQty = 0; ?>
+                <?php $__currentLoopData = $purchase->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $total = $item->purchase_amount; $grandTotal += $total; $totalQty += $item->quantity; ?>
                     <tr>
-                        <td>{{ $i+1 }}</td>
+                        <td><?php echo e($i+1); ?></td>
                         <td style="text-align:left;">
-                            <b>{{ $item->inventory->item_name ?? '-' }}</b>
-                            @php $details = trim($item->inventory->details ?? ''); @endphp
-                            @if($details && strtolower($details) !== 'n/a')
+                            <b><?php echo e($item->inventory->item_name ?? '-'); ?></b>
+                            <?php $details = trim($item->inventory->details ?? ''); ?>
+                            <?php if($details && strtolower($details) !== 'n/a'): ?>
                                 <div style="font-weight:normal; font-size:1.05em; margin-top:2px;">
-                                    {{ $details }}
+                                    <?php echo e($details); ?>
+
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </td>
                         <td>
-                            {{ $purchase->supplier->currency['symbol'] }} {{ number_format($item->purchase_amount / max($item->quantity,1), 2) }} ({{ $purchase->supplier->currency['code'] }})
+                            <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($item->purchase_amount / max($item->quantity,1), 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                         </td>
-                        <td>{{ $item->quantity }}</td>
+                        <td><?php echo e($item->quantity); ?></td>
                         <td>
-                            {{ $purchase->supplier->currency['symbol'] }} {{ number_format($total, 2) }} ({{ $purchase->supplier->currency['code'] }})
+                            <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($total, 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                         </td>
                     </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <tr class="total-row">
                     <td colspan="3" style="text-align:right;">Total</td>
-                    <td>{{ $totalQty }}</td>
+                    <td><?php echo e($totalQty); ?></td>
                     <td>
-                        {{ $purchase->supplier->currency['symbol'] }} {{ number_format($grandTotal, 2) }} ({{ $purchase->supplier->currency['code'] }})
+                        <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($grandTotal, 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                     </td>
                 </tr>
             </tbody>
@@ -143,43 +144,43 @@
             <tr>
                 <td class="label">Sub Total</td>
                 <td class="value">
-                    {{ $purchase->supplier->currency['symbol'] }} {{ number_format($grandTotal, 2) }} ({{ $purchase->supplier->currency['code'] }})
+                    <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($grandTotal, 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                 </td>
             </tr>
-            @if($purchase->supplier->currency['code'] !== 'PKR')
+            <?php if($purchase->supplier->currency['code'] !== 'PKR'): ?>
             <tr>
                 <td class="label">Sub Total (PKR)</td>
                 <td class="value">
-                    Rs {{ number_format($purchase->pkr_amount, 2) }} (PKR)
+                    Rs <?php echo e(number_format($purchase->pkr_amount, 2)); ?> (PKR)
                 </td>
             </tr>
-            @endif
+            <?php endif; ?>
             <tr>
                 <td class="label">Previous Payable</td>
                 <td class="value">
-                    {{ $purchase->supplier->currency['symbol'] }} {{ number_format($previousPayable, 2) }} ({{ $purchase->supplier->currency['code'] }})
+                    <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($previousPayable, 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                 </td>
             </tr>
             <tr>
                 <td class="grand">Grand Total</td>
                 <td class="grand">
-                    {{ $purchase->supplier->currency['symbol'] }} {{ number_format($grandTotalWithPrevious, 2) }} ({{ $purchase->supplier->currency['code'] }})
+                    <?php echo e($purchase->supplier->currency['symbol']); ?> <?php echo e(number_format($grandTotalWithPrevious, 2)); ?> (<?php echo e($purchase->supplier->currency['code']); ?>)
                 </td>
             </tr>
-            @if($purchase->supplier->currency['code'] !== 'PKR')
+            <?php if($purchase->supplier->currency['code'] !== 'PKR'): ?>
             <tr>
                 <td class="grand">Grand Total (PKR)</td>
                 <td class="grand">
-                    Rs {{ number_format($grandTotalWithPrevious * $purchase->exchange_rate_to_pkr, 2) }} (PKR)
+                    Rs <?php echo e(number_format($grandTotalWithPrevious * $purchase->exchange_rate_to_pkr, 2)); ?> (PKR)
                 </td>
             </tr>
             <tr>
                 <td class="label">Conversion Rate</td>
                 <td class="value">
-                    1 {{ $purchase->supplier->currency['code'] }} = {{ number_format($purchase->exchange_rate_to_pkr, 4) }} PKR
+                    1 <?php echo e($purchase->supplier->currency['code']); ?> = <?php echo e(number_format($purchase->exchange_rate_to_pkr, 4)); ?> PKR
                 </td>
             </tr>
-            @endif
+            <?php endif; ?>
         </table>
     </div>
     <div style="clear:both;"></div>
@@ -191,4 +192,4 @@
         <button onclick="window.print()" style="padding:10px 32px; font-size:1.1rem; background:#b71c1c; color:#fff; border:none; border-radius:6px; cursor:pointer;">Print</button>
     </div>
 </body>
-</html> 
+</html> <?php /**PATH C:\Users\HP\Desktop\posnex\resources\views/purchases/print.blade.php ENDPATH**/ ?>

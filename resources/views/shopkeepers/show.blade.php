@@ -44,7 +44,11 @@
             <div class="card text-center shadow-sm">
                 <div class="card-body">
                     <i class="bi bi-cash-stack text-success" style="font-size:2rem;"></i>
-                    <h5 class="mb-0">Rs {{ number_format($totalSales, 2) }}</h5>
+                    @php
+                        $openingOutstanding = $shopkeeper->transactions()->where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
+                        $totalSalesWithOpening = $totalSales + $openingOutstanding;
+                    @endphp
+                    <h5 class="mb-0">Rs {{ number_format($totalSalesWithOpening, 2) }}</h5>
                     <div class="text-muted">Total Sales</div>
                 </div>
             </div>

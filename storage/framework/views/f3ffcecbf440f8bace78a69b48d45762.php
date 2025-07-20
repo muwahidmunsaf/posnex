@@ -168,35 +168,43 @@
 
             
             <?php if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'])): ?>
-                <li class="mt-2">
-                    <a class="nav-link d-flex justify-content-between align-items-center <?php echo e(request()->is('users*') ? '' : 'collapsed'); ?>"
-                        href="<?php echo e(route('users.index')); ?>">
-                        <span><i class="bi bi-people me-2"></i> User Management</span>
+                <li class="nav-item mt-2">
+                    <a class="nav-link d-flex justify-content-between align-items-center <?php echo e(request()->is('users*') || request()->is('activity-logs*') || request()->is('recycle-bin*') || request()->is('manage-backup*') || request()->is('admin/reset-data*') ? '' : 'collapsed'); ?>"
+                       data-bs-toggle="collapse" href="#settingsMenu"
+                       aria-expanded="<?php echo e(request()->is('users*') || request()->is('activity-logs*') || request()->is('recycle-bin*') || request()->is('manage-backup*') || request()->is('admin/reset-data*') ? 'true' : 'false'); ?>">
+                        <span><i class="bi bi-gear me-2"></i> Settings</span>
+                        <i class="bi bi-chevron-down"></i>
                     </a>
+                    <div class="collapse <?php echo e(request()->is('users*') || request()->is('activity-logs*') || request()->is('recycle-bin*') || request()->is('manage-backup*') || request()->is('admin/reset-data*') ? 'show' : ''); ?>" id="settingsMenu">
+                        <ul class="nav flex-column ps-4">
+                            <li>
+                                <a href="<?php echo e(route('users.index')); ?>" class="nav-link <?php echo e(request()->is('users*') ? 'active' : 'text-dark'); ?>">
+                                    <i class="bi bi-people me-2"></i> User Management
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?php echo e(route('activity-logs.index')); ?>" class="nav-link <?php echo e(request()->is('activity-logs*') ? 'active' : 'text-dark'); ?>">
+                                    <i class="bi bi-clock-history me-2"></i> Activity Log
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?php echo e(route('recycle.bin')); ?>" class="nav-link <?php echo e(request()->is('recycle-bin*') ? 'active' : 'text-dark'); ?>">
+                                    <i class="bi bi-trash3 me-2"></i> Recycle Bin
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/manage-backup" class="nav-link <?php echo e(request()->is('manage-backup*') ? 'active' : 'text-dark'); ?>">
+                                    <i class="bi bi-cloud-arrow-up me-2"></i> Backup
+                                </a>
+                            </li>
+                            <li>
+                                <a href="<?php echo e(route('admin.reset-data')); ?>" class="nav-link <?php echo e(request()->is('admin/reset-data*') ? 'active' : 'text-dark'); ?>">
+                                    <i class="bi bi-arrow-repeat me-2"></i> Reset Data
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
-            <?php endif; ?>
-
-            
-            <?php if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'])): ?>
-                <li class="mt-2">
-                    <a class="nav-link d-flex justify-content-between align-items-center <?php echo e(request()->is('activity-logs*') ? '' : 'collapsed'); ?>"
-                        href="<?php echo e(route('activity-logs.index')); ?>">
-                        <span><i class="bi bi-clock-history me-2"></i> Activity Logs</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo e(route('recycle.bin')); ?>">
-                        <i class="bi bi-trash3"></i> Recycle Bin
-                    </a>
-                </li>
-                <?php if(auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'])): ?>
-                <li class="mt-2">
-                    <a class="nav-link d-flex justify-content-between align-items-center <?php echo e(request()->is('manage-backup') ? 'active' : 'text-dark'); ?>"
-                       href="/manage-backup">
-                        <span><i class="bi bi-cloud-arrow-up me-2"></i> Backup</span>
-                    </a>
-                </li>
-            <?php endif; ?>
             <?php endif; ?>
 
         </ul>

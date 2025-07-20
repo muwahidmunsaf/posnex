@@ -148,13 +148,14 @@
                 <tbody>
                     @forelse($shopkeepers as $shopkeeper)
                     <tr>
-                        <td>{{ $shopkeeper->name }}</td>
-                        <td>{{ $shopkeeper->phone ?? '-' }}</td>
-                        <td>{{ $shopkeeper->address ?? '-' }}</td>
-                        <td>{{ $shopkeeper->distributor->name }}</td>
-                        <td>Rs {{ number_format($shopkeeper->total_sales, 2) }}</td>
-                        <td>Rs {{ number_format($shopkeeper->outstanding_balance, 2) }}</td>
+                        <td>{{ $shopkeeper?->name ?? '-' }}</td>
+                        <td>{{ $shopkeeper?->phone ?? '-' }}</td>
+                        <td>{{ $shopkeeper?->address ?? '-' }}</td>
+                        <td>{{ $shopkeeper?->distributor?->name ?? '-' }}</td>
+                        <td>Rs {{ number_format($shopkeeper?->total_sales ?? 0, 2) }}</td>
+                        <td>Rs {{ number_format($shopkeeper?->outstanding_balance ?? 0, 2) }}</td>
                         <td>
+                            @if($shopkeeper)
                             <a href="{{ route('shopkeepers.printHistory', ['shopkeeper' => $shopkeeper->id, 'from' => request('from'), 'to' => request('to')]) }}" target="_blank" class="btn btn-sm btn-secondary" title="Print for Date Range"><i class="bi bi-printer"></i></a>
                             <a href="{{ route('shopkeepers.show', $shopkeeper) }}" class="btn btn-sm btn-info" title="View"><i class="bi bi-eye"></i></a>
                             <a href="{{ route('shopkeepers.edit', $shopkeeper) }}" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil"></i></a>
@@ -178,7 +179,7 @@
                                             <div class="alert alert-warning">
                                                 <strong>Warning:</strong> Deleting this shopkeeper will <b>hide</b> them from the system, but all related sales and payment history will be preserved and not affected. You can restore the shopkeeper later if needed.
                                             </div>
-                                            Are you sure you want to delete <strong>{{ $shopkeeper->name }}</strong>?
+                                            Are you sure you want to delete <strong>{{ $shopkeeper?->name ?? '-' }}</strong>?
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -187,6 +188,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endif
                         </td>
                     </tr>
                     @empty

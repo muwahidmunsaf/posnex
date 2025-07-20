@@ -1,6 +1,4 @@
-@extends('layouts.pos')
-
-@section('pos')
+<?php $__env->startSection('pos'); ?>
     <div class="container py-4">
         <div class="card shadow-lg border-0 modern-sale-card animate__animated animate__fadeIn">
             <div class="card-header bg-white text-danger d-flex align-items-center" style="border-top-left-radius: 1.5rem; border-top-right-radius: 1.5rem;">
@@ -8,22 +6,22 @@
                 <h4 class="mb-0 fw-bold">Create New Sale</h4>
             </div>
 
-            {{-- Validation Errors --}}
-            @if ($errors->any())
+            
+            <?php if($errors->any()): ?>
                 <div class="alert alert-danger shadow-sm">
                     <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?>
             <div class="card-body">
-                <form action="{{ route('sales.store') }}" method="POST" id="sale-form" class="mb-5">
-                    @csrf
-                    <input type="hidden" name="idempotency_token" value="{{ $token }}">
+                <form action="<?php echo e(route('sales.store')); ?>" method="POST" id="sale-form" class="mb-5">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="idempotency_token" value="<?php echo e($token); ?>">
                     <div class="row g-4">
-                        {{-- Sale Type & Customer Info --}}
+                        
                         <div class="col-md-7">
                             <div class="row g-3 mb-3">
                                 <div class="col-12">
@@ -61,7 +59,7 @@
                                 <input type="text" name="retail_customer_name" id="retail_customer_name" class="form-control" placeholder="Enter customer name">
                                 </div>
                             </div>
-                            {{-- Item Selection --}}
+                            
                             <div class="card border-0 shadow-sm mb-3 modern-section-card">
                                 <div class="card-header bg-light d-flex justify-content-between align-items-center rounded-top">
                                     <strong><i class="fa fa-boxes-stacked me-2"></i>Select Items & Quantities</strong>
@@ -75,11 +73,11 @@
                                     </div>
                                 </div>
                                 <div class="card-body p-3" id="selected-items">
-                                    {{-- Selected items will be rendered here --}}
+                                    
                                 </div>
                             </div>
                         </div>
-                        {{-- Right Section: Summary --}}
+                        
                         <div class="col-md-5">
                             <div class="card border-0 shadow-sm modern-section-card">
                                 <div class="card-header bg-light rounded-top">
@@ -129,7 +127,7 @@
                                     </div>
                                     <div class="d-flex justify-content-between mt-4">
                                         <button type="submit" class="btn btn-danger w-50 modern-btn animate__animated animate__pulse"><i class="fa fa-check-circle me-2"></i>Submit Sale</button>
-                                        <a href="{{ route('sales.index') }}"
+                                        <a href="<?php echo e(route('sales.index')); ?>"
                                             class="btn btn-outline-secondary w-45 ms-2 modern-btn"><i class="fa fa-times me-2"></i>Cancel</a>
                                     </div>
                                 </div>
@@ -138,7 +136,7 @@
                     </div>
                 </form>
 
-                {{-- Item Modal --}}
+                
                 <div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-lg">
@@ -152,40 +150,41 @@
                                 <input type="text" id="item-search" class="form-control mb-3"
                                     placeholder="Search items...">
                                 <div class="list-group" id="item-list" style="max-height: 300px; overflow-y: auto;">
-                                    @foreach ($inventories as $inventory)
-                                        @php
+                                    <?php $__currentLoopData = $inventories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inventory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $isInactive = $inventory->status === 'inactive';
                                             //$isOutOfStock = $inventory->unit <= 0;
                                             //$isLowStock = !$isOutOfStock && $inventory->unit < 10;
                                             $disabled = $isInactive; // Only inactive items are disabled
-                                        @endphp
+                                        ?>
                                         <button type="button"
-                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {{ $disabled ? 'disabled' : '' }}"
-                                            data-id="{{ $inventory->id }}" data-name="{{ $inventory->item_name }}"
-                                            data-retail="{{ $inventory->retail_amount }}"
-                                            data-wholesale="{{ $inventory->wholesale_amount }}"
-                                            data-unit="{{ $inventory->unit }}" {{ $disabled ? 'disabled' : '' }}>
+                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center <?php echo e($disabled ? 'disabled' : ''); ?>"
+                                            data-id="<?php echo e($inventory->id); ?>" data-name="<?php echo e($inventory->item_name); ?>"
+                                            data-retail="<?php echo e($inventory->retail_amount); ?>"
+                                            data-wholesale="<?php echo e($inventory->wholesale_amount); ?>"
+                                            data-unit="<?php echo e($inventory->unit); ?>" <?php echo e($disabled ? 'disabled' : ''); ?>>
                                             <div>
-                                                <strong>{{ $inventory->item_name }}</strong>
+                                                <strong><?php echo e($inventory->item_name); ?></strong>
                                                 <div class="text-muted small">
-                                                    Retail: {{ number_format($inventory->retail_amount, 2) }} |
-                                                    Wholesale: {{ number_format($inventory->wholesale_amount, 2) }} |
-                                                    In Stock: {{ $inventory->unit }}
-                                                    @if ($isInactive)
+                                                    Retail: <?php echo e(number_format($inventory->retail_amount, 2)); ?> |
+                                                    Wholesale: <?php echo e(number_format($inventory->wholesale_amount, 2)); ?> |
+                                                    In Stock: <?php echo e($inventory->unit); ?>
+
+                                                    <?php if($isInactive): ?>
                                                         <span class="badge bg-secondary ms-2">Inactive</span>
-                                                    @elseif($inventory->unit < 10)
+                                                    <?php elseif($inventory->unit < 10): ?>
                                                         <span class="badge bg-warning text-dark ms-2">Low Stock</span>
-                                                    @endif
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </button>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- Distributor Modal --}}
+                
                 <div class="modal fade" id="distributorModal" tabindex="-1" aria-labelledby="distributorModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -196,17 +195,18 @@
                             <div class="modal-body">
                                 <input type="text" id="distributorModalSearch" class="form-control mb-2" placeholder="Search distributor...">
                                 <ul class="list-group" id="distributorList">
-                                    @foreach ($distributors as $distributor)
-                                        <li class="list-group-item distributor-item" data-id="{{ $distributor->id }}" data-name="{{ $distributor->name }}">
-                                            {{ $distributor->name }}
+                                    <?php $__currentLoopData = $distributors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $distributor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li class="list-group-item distributor-item" data-id="<?php echo e($distributor->id); ?>" data-name="<?php echo e($distributor->name); ?>">
+                                            <?php echo e($distributor->name); ?>
+
                                         </li>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- Shopkeeper Modal --}}
+                
                 <div class="modal fade" id="shopkeeperModal" tabindex="-1" aria-labelledby="shopkeeperModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -217,17 +217,18 @@
                             <div class="modal-body">
                                 <input type="text" id="shopkeeperModalSearch" class="form-control mb-2" placeholder="Search shopkeeper...">
                                 <ul class="list-group" id="shopkeeperList">
-                                    @foreach ($shopkeepers as $shopkeeper)
-                                        <li class="list-group-item shopkeeper-item" data-id="{{ $shopkeeper->id }}" data-name="{{ $shopkeeper->name }}" data-distributor="{{ $shopkeeper->distributor_id }}">
-                                            {{ $shopkeeper->name }}
+                                    <?php $__currentLoopData = $shopkeepers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $shopkeeper): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li class="list-group-item shopkeeper-item" data-id="<?php echo e($shopkeeper->id); ?>" data-name="<?php echo e($shopkeeper->name); ?>" data-distributor="<?php echo e($shopkeeper->distributor_id); ?>">
+                                            <?php echo e($shopkeeper->name); ?>
+
                                         </li>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- Manual Product Modal --}}
+                
                 <div class="modal fade" id="manualProductModal" tabindex="-1" aria-labelledby="manualProductModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content shadow-sm">
@@ -272,14 +273,14 @@
                             <div class="modal-body">
                                 <input type="text" id="wholesale-customer-search" class="form-control mb-3" placeholder="Search wholesalers...">
                                 <div class="list-group" id="wholesale-customer-list" style="max-height: 300px; overflow-y: auto;">
-                                    @foreach ($customers as $customer)
+                                    <?php $__currentLoopData = $customers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $customer): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                                            data-id="{{ $customer->id }}" data-name="{{ $customer->name }}">
+                                            data-id="<?php echo e($customer->id); ?>" data-name="<?php echo e($customer->name); ?>">
                                             <div>
-                                                <strong>{{ $customer->name }}</strong>
+                                                <strong><?php echo e($customer->name); ?></strong>
                                             </div>
                                         </button>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
@@ -288,9 +289,9 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- FontAwesome CDN for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -346,9 +347,9 @@
             .form-control, .form-select { font-size: 0.95rem; }
         }
     </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script>
 window.addEventListener('pageshow', function(event) {
     if (event.persisted) {
@@ -622,9 +623,10 @@ $(document).ready(function() {
     // --- TAX PERCENTAGE DYNAMIC UPDATE ---
     // Define tax rates from backend (passed as JS object or inline script)
     var taxRates = {
-        cash: {{ $company->tax_cash ?? 0 }},
-        card: {{ $company->tax_card ?? 0 }},
-        online: {{ $company->tax_online ?? 0 }}
+        cash: <?php echo e($company->tax_cash ?? 0); ?>,
+        card: <?php echo e($company->tax_card ?? 0); ?>,
+        online: <?php echo e($company->tax_online ?? 0); ?>
+
     };
     function updateTaxPercentage() {
         var method = $('#payment_method').val();
@@ -765,5 +767,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
 
+
+<?php echo $__env->make('layouts.pos', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\posnex\resources\views/sales/create.blade.php ENDPATH**/ ?>

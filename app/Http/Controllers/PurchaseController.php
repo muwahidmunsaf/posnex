@@ -136,7 +136,7 @@ class PurchaseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('purchase.print', $purchase->id);
+            return redirect()->route('purchase.index')->with('success', 'Purchase created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('PurchaseController@store exception', [

@@ -159,3 +159,16 @@
         });
     </script>
 @endsection
+
+@push('scripts')
+<script>
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+window.onload = function() {
+    window.scrollTo(0, 0);
+};
+</script>
+@endpush

@@ -271,3 +271,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/manage-backup/google/callback', [\App\Http\Controllers\CloudBackupController::class, 'handleGoogleCallback'])->name('cloud-backup.google.callback');
 });
 
+// Reset Data (Admin Only)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/reset-data', [App\Http\Controllers\AdminResetController::class, 'showResetForm'])->name('admin.reset-data');
+    Route::post('/admin/reset-data', [App\Http\Controllers\AdminResetController::class, 'resetData'])->name('admin.reset-data.post');
+});
+

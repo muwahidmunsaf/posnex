@@ -26,19 +26,30 @@ class DistributorController extends Controller
         $totalPaidCommission = 0;
         $totalPendingCommission = 0;
         $totalRemainingAmount = 0;
+        $totalOpeningOutstanding = \App\Models\ShopkeeperTransaction::where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
         foreach ($distributors as $distributor) {
-            $shopkeepers = $distributor->shopkeepers;
+            // Use withTrashed to include soft-deleted shopkeepers
+            $shopkeepers = $distributor->shopkeepers()->withTrashed()->get();
             $sales = \App\Models\Sale::whereIn('shopkeeper_id', $shopkeepers->pluck('id'))->get();
             $totalSales = $sales->sum('total_amount');
             $commissionRate = $distributor->commission_rate ?? 0;
             $computedCommission = $totalSales * $commissionRate / 100;
             $paidCommission = $distributor->payments()->where('type', 'commission')->sum('amount');
             $pendingCommission = max($computedCommission - $paidCommission, 0);
+            $openingOutstanding = \App\Models\ShopkeeperTransaction::whereIn('shopkeeper_id', $shopkeepers->pluck('id'))
+                ->where('type', 'product_sold')
+                ->where('description', 'Opening Outstanding')
+                ->sum('total_amount');
+            $paymentsReceived = \App\Models\ShopkeeperTransaction::whereIn('shopkeeper_id', $shopkeepers->pluck('id'))
+                ->where('type', 'payment_made')
+                ->sum('total_amount');
             $remainingAmount = $sales->sum(function($sale) { return ($sale->total_amount - ($sale->amount_received ?? 0)); });
+            $remainingAmount = $remainingAmount + $openingOutstanding - $paymentsReceived;
             $totalPaidCommission += $paidCommission;
             $totalPendingCommission += $pendingCommission;
             $totalRemainingAmount += $remainingAmount;
         }
+        $totalRemainingAmount += $totalOpeningOutstanding;
         return view('distributors.index', compact('distributors', 'totalDistributors', 'totalPaidCommission', 'totalPendingCommission', 'totalRemainingAmount'));
     }
 
@@ -74,7 +85,8 @@ class DistributorController extends Controller
     public function show(Distributor $distributor)
     {
         // Show distributor details and shopkeepers
-        $shopkeepers = $distributor->shopkeepers;
+        // Use withTrashed to include soft-deleted shopkeepers
+        $shopkeepers = $distributor->shopkeepers()->withTrashed()->get();
         // Log the activity
         $this->logActivity('Viewed Distributor', $distributor->name);
         return view('distributors.show', compact('distributor', 'shopkeepers'));
@@ -119,7 +131,8 @@ class DistributorController extends Controller
 
     public function history(Distributor $distributor)
     {
-        $shopkeepers = $distributor->shopkeepers;
+        // Use withTrashed to include soft-deleted shopkeepers
+        $shopkeepers = $distributor->shopkeepers()->withTrashed()->get();
         // Get all sales for all shopkeepers under this distributor
         $sales = \App\Models\Sale::whereIn('shopkeeper_id', $shopkeepers->pluck('id'))->with(['shopkeeper', 'customer'])->get();
         $totalSales = $sales->sum('total_amount');
@@ -133,7 +146,8 @@ class DistributorController extends Controller
 
     public function printHistory(Distributor $distributor)
     {
-        $shopkeepers = $distributor->shopkeepers;
+        // Use withTrashed to include soft-deleted shopkeepers
+        $shopkeepers = $distributor->shopkeepers()->withTrashed()->get();
         $sales = \App\Models\Sale::whereIn('shopkeeper_id', $shopkeepers->pluck('id'))->with(['shopkeeper', 'customer'])->get();
         $totalSales = $sales->sum('total_amount');
         $totalOutstanding = $sales->sum(function($sale) {
@@ -177,7 +191,8 @@ class DistributorController extends Controller
         $endDate = $request->query('end_date');
         $distributors = \App\Models\Distributor::with('shopkeepers')->get();
         $summary = $distributors->map(function($distributor, $i) use ($startDate, $endDate) {
-            $shopkeepers = $distributor->shopkeepers;
+            // Use withTrashed to include soft-deleted shopkeepers
+            $shopkeepers = $distributor->shopkeepers()->withTrashed()->get();
             $salesQuery = \App\Models\Sale::whereIn('shopkeeper_id', $shopkeepers->pluck('id'));
             if ($startDate) $salesQuery->whereDate('created_at', '>=', $startDate);
             if ($endDate) $salesQuery->whereDate('created_at', '<=', $endDate);

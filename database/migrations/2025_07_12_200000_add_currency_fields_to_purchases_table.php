@@ -11,11 +11,21 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('purchases', function (Blueprint $table) {
-            $table->string('currency_code')->nullable()->after('company_id');
-            $table->decimal('exchange_rate_to_pkr', 16, 8)->nullable()->after('currency_code');
-            $table->decimal('pkr_amount', 12, 2)->nullable()->after('exchange_rate_to_pkr');
-        });
+        if (!Schema::hasColumn('purchases', 'currency_code')) {
+            Schema::table('purchases', function (Blueprint $table) {
+                $table->string('currency_code')->nullable()->after('company_id');
+            });
+        }
+        if (!Schema::hasColumn('purchases', 'exchange_rate_to_pkr')) {
+            Schema::table('purchases', function (Blueprint $table) {
+                $table->decimal('exchange_rate_to_pkr', 16, 8)->nullable()->after('currency_code');
+            });
+        }
+        if (!Schema::hasColumn('purchases', 'pkr_amount')) {
+            Schema::table('purchases', function (Blueprint $table) {
+                $table->decimal('pkr_amount', 12, 2)->nullable()->after('exchange_rate_to_pkr');
+            });
+        }
     }
 
     /**

@@ -77,9 +77,10 @@ class DashboardController extends Controller
         if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
         if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
         $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
-        // Add shopkeeper payments
+        // Include soft-deleted shopkeepers in payments received calculation
+        $shopkeeperIds = \App\Models\Shopkeeper::withTrashed()->pluck('id');
         $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
-            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+            ->whereIn('shopkeeper_id', $shopkeeperIds);
         if ($from) $paymentsReceivedViaShopkeepers->where('transaction_date', '>=', $from);
         if ($to) $paymentsReceivedViaShopkeepers->where('transaction_date', '<=', $to);
         $paymentsReceivedViaShopkeepers = $paymentsReceivedViaShopkeepers->sum('total_amount');
@@ -98,18 +99,38 @@ class DashboardController extends Controller
         if ($from) $totalReceivedViaSales->where('created_at', '>=', $from);
         if ($to) $totalReceivedViaSales->where('created_at', '<=', $to);
         $totalReceivedViaSales = $totalReceivedViaSales->sum('amount_received');
-        // Pending balance (wholesale/distributor only)
-        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)->whereIn('sale_type', ['wholesale', 'distributor']);
+        // Include soft-deleted shopkeepers in pending balance calculation
+        $shopkeeperIds = \App\Models\Shopkeeper::withTrashed()->pluck('id');
+        $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)
+            ->whereIn('sale_type', ['wholesale', 'distributor'])
+            ->whereIn('shopkeeper_id', $shopkeeperIds);
         if ($from) $pendingBalanceQuery->where('created_at', '>=', $from);
         if ($to) $pendingBalanceQuery->where('created_at', '<=', $to);
         $pendingBalanceSales = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
         // Subtract shopkeeper payments
         $shopkeeperPayments = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
-            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+            ->whereIn('shopkeeper_id', $shopkeeperIds);
         if ($from) $shopkeeperPayments->where('transaction_date', '>=', $from);
         if ($to) $shopkeeperPayments->where('transaction_date', '<=', $to);
         $shopkeeperPayments = $shopkeeperPayments->sum('total_amount');
-        $pendingBalance = $pendingBalanceSales - $shopkeeperPayments;
+        // Add pending and received for wholesale customers
+        $wholesaleCustomerSales = \App\Models\Sale::where('company_id', $companyId)
+            ->where('sale_type', 'wholesale')
+            ->whereNotNull('customer_id');
+        if ($from) $wholesaleCustomerSales->where('created_at', '>=', $from);
+        if ($to) $wholesaleCustomerSales->where('created_at', '<=', $to);
+        $pendingWholesaleCustomer = $wholesaleCustomerSales->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        $wholesaleCustomerIds = $wholesaleCustomerSales->pluck('customer_id')->unique();
+        $paymentsReceivedViaWholesaleCustomers = \App\Models\Payment::whereIn('customer_id', $wholesaleCustomerIds);
+        if ($from) $paymentsReceivedViaWholesaleCustomers->where('date', '>=', $from);
+        if ($to) $paymentsReceivedViaWholesaleCustomers->where('date', '<=', $to);
+        $paymentsReceivedViaWholesaleCustomers = $paymentsReceivedViaWholesaleCustomers->sum('amount_paid');
+        $pendingBalance = $pendingBalanceSales - $shopkeeperPayments + $pendingWholesaleCustomer - $paymentsReceivedViaWholesaleCustomers;
+
+        // Add opening outstanding to total sales and pending balance
+        $openingOutstanding = \App\Models\ShopkeeperTransaction::where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
+        $totalSales = $totalSales + $openingOutstanding;
+        $pendingBalance = $pendingBalance + $openingOutstanding;
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
@@ -155,7 +176,8 @@ class DashboardController extends Controller
         // Counts (all time, not filtered)
         $suppliersCount = \App\Models\Supplier::where('company_id', $companyId)->count();
         $customersCount = \App\Models\Customer::where('company_id', $companyId)->count();
-        $shopkeepersCount = \App\Models\Shopkeeper::whereHas('distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })->count();
+        // Use withTrashed to include soft-deleted shopkeepers in counts and aggregations
+        $shopkeepersCount = \App\Models\Shopkeeper::withTrashed()->whereHas('distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })->count();
         $distributorsCount = \App\Models\Distributor::where('company_id', $companyId)->count();
 
         // Profits
@@ -244,9 +266,10 @@ class DashboardController extends Controller
         if ($from) $paymentsReceivedViaPayments->where('date', '>=', $from);
         if ($to) $paymentsReceivedViaPayments->where('date', '<=', $to);
         $paymentsReceivedViaPayments = $paymentsReceivedViaPayments->sum('amount_paid');
-        // Add shopkeeper payments
+        // Include soft-deleted shopkeepers in payments received calculation
+        $shopkeeperIds = \App\Models\Shopkeeper::withTrashed()->pluck('id');
         $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
-            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); });
+            ->whereIn('shopkeeper_id', $shopkeeperIds);
         if ($from) $paymentsReceivedViaShopkeepers->where('transaction_date', '>=', $from);
         if ($to) $paymentsReceivedViaShopkeepers->where('transaction_date', '<=', $to);
         $paymentsReceivedViaShopkeepers = $paymentsReceivedViaShopkeepers->sum('total_amount');
@@ -267,6 +290,11 @@ class DashboardController extends Controller
         $totalReceivedViaSales = $totalReceivedViaSales->sum('amount_received');
         // Pending balance (accounts receivable)
         $pendingBalance = $totalSales - ($totalReceivedViaSales + $totalReceivedViaPayments);
+
+        // Add opening outstanding to total sales and pending balance
+        $openingOutstanding = \App\Models\ShopkeeperTransaction::where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
+        $totalSales = $totalSales + $openingOutstanding;
+        $pendingBalance = $pendingBalance + $openingOutstanding;
 
         // Accounts Payable (PKR)
         $totalPurchasesPKRQuery = \App\Models\Purchase::where('company_id', $companyId);
@@ -312,7 +340,7 @@ class DashboardController extends Controller
         // Counts (all time, not filtered)
         $suppliersCount = \App\Models\Supplier::where('company_id', $companyId)->count();
         $customersCount = \App\Models\Customer::where('company_id', $companyId)->count();
-        $shopkeepersCount = \App\Models\Shopkeeper::whereHas('distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })->count();
+        $shopkeepersCount = \App\Models\Shopkeeper::withTrashed()->whereHas('distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })->count();
         $distributorsCount = \App\Models\Distributor::where('company_id', $companyId)->count();
 
         // Profits

@@ -35,12 +35,13 @@ class ShopkeeperController extends Controller
         foreach ($shopkeepers as $shopkeeper) {
             $sales = \App\Models\Sale::where('shopkeeper_id', $shopkeeper->id)->get();
             $totalSale = $sales->sum('total_amount');
+            $openingOutstanding = $shopkeeper->transactions()->where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
+            $totalSales += $totalSale + $openingOutstanding;
             $receivedFromSales = $sales->sum('amount_received');
             // Add payments from ShopkeeperTransaction of type 'payment_made'
             $receivedFromPayments = $shopkeeper->transactions()->where('type', 'payment_made')->sum('total_amount');
             $received = $receivedFromSales + $receivedFromPayments;
-            $balance = $totalSale - $received;
-            $totalSales += $totalSale;
+            $balance = $totalSale + $openingOutstanding - $received;
             $totalReceived += $received;
             $totalBalance += $balance;
         }

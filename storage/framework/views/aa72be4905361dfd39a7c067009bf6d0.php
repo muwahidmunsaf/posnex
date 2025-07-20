@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
 /* Ensure form inputs are properly styled and enabled */
 .quantity-input, .amount-input {
@@ -40,14 +38,14 @@
 <div class="container">
     <h3 class="mb-4">Create Purchase</h3>
 
-    <form action="{{ route('purchase.store') }}" method="POST">
-        @csrf
-        <input type="hidden" name="idempotency_token" value="{{ $token }}">
+    <form action="<?php echo e(route('purchase.store')); ?>" method="POST">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" name="idempotency_token" value="<?php echo e($token); ?>">
 
         <div class="mb-3 row">
             <label for="purchase_date" class="col-sm-2 col-form-label">Purchase Date</label>
             <div class="col-sm-4">
-                <input type="date" id="purchase_date" name="purchase_date" class="form-control" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
+                <input type="date" id="purchase_date" name="purchase_date" class="form-control" value="<?php echo e(old('purchase_date', date('Y-m-d'))); ?>" required>
             </div>
         </div>
 
@@ -56,11 +54,12 @@
             <div class="col-sm-6">
                 <select name="supplier_id" id="supplier_id" class="form-select" required>
                     <option value="">Select Supplier</option>
-                    @foreach ($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                            {{ $supplier->supplier_name }}
+                    <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($supplier->id); ?>" <?php echo e(old('supplier_id') == $supplier->id ? 'selected' : ''); ?>>
+                            <?php echo e($supplier->supplier_name); ?>
+
                         </option>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
         </div>
@@ -88,7 +87,7 @@
         <button type="button" id="add-item" class="btn btn-outline-secondary mb-4" data-bs-toggle="modal" data-bs-target="#productModal">+ Add Item</button>
         <div>
             <button type="submit" class="btn btn-primary">Save Purchase</button>
-            <a href="{{ route('purchase.index') }}" class="btn btn-secondary ms-2">Cancel</a>
+            <a href="<?php echo e(route('purchase.index')); ?>" class="btn btn-secondary ms-2">Cancel</a>
         </div>
     </form>
 </div>
@@ -111,12 +110,12 @@
               </tr>
             </thead>
             <tbody id="product-list">
-              @foreach ($inventories as $inventory)
-                <tr data-id="{{ $inventory->id }}" data-name="{{ strtolower($inventory->item_name) }}">
-                  <td>{{ $inventory->item_name }}</td>
-                  <td><button type="button" class="btn btn-sm btn-primary select-product" data-id="{{ $inventory->id }}" data-name="{{ $inventory->item_name }}">Select</button></td>
+              <?php $__currentLoopData = $inventories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inventory): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <tr data-id="<?php echo e($inventory->id); ?>" data-name="<?php echo e(strtolower($inventory->item_name)); ?>">
+                  <td><?php echo e($inventory->item_name); ?></td>
+                  <td><button type="button" class="btn btn-sm btn-primary select-product" data-id="<?php echo e($inventory->id); ?>" data-name="<?php echo e($inventory->item_name); ?>">Select</button></td>
                 </tr>
-              @endforeach
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
           </table>
         </div>
@@ -125,7 +124,7 @@
   </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let itemIndex = 0;
 const addedProductIds = new Set();
@@ -179,9 +178,9 @@ function updateLabelsVisibility() {
 
 // --- Supplier currency map ---
 const supplierCurrencies = {
-@foreach ($suppliers as $supplier)
-    {{ $supplier->id }}: { symbol: @json($supplier->currency['symbol']), code: @json($supplier->currency['code']) },
-@endforeach
+<?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php echo e($supplier->id); ?>: { symbol: <?php echo json_encode($supplier->currency['symbol'], 15, 512) ?>, code: <?php echo json_encode($supplier->currency['code'], 15, 512) ?> },
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 };
 
 function getSelectedSupplierCurrency() {
@@ -340,5 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\posnex\resources\views/purchases/create.blade.php ENDPATH**/ ?>

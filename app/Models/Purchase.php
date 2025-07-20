@@ -34,4 +34,12 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseItem::class);
     }
+
+    public static function boot()
+    {
+        parent::boot();
+        static::deleting(function ($purchase) {
+            $purchase->items()->delete();
+        });
+    }
 }

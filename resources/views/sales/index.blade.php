@@ -107,4 +107,13 @@
         background-color:rgb(248, 198, 192) !important;
     }
     </style>
+    @push('scripts')
+    <script>
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+    </script>
+    @endpush
 @endsection

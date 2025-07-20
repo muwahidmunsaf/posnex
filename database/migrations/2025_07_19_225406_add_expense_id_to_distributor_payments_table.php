@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->softDeletes();
+        Schema::table('distributor_payments', function (Blueprint $table) {
+            $table->unsignedBigInteger('expense_id')->nullable()->after('id');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('suppliers', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+        Schema::table('distributor_payments', function (Blueprint $table) {
+            $table->dropColumn('expense_id');
         });
     }
 };

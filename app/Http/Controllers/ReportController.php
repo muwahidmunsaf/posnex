@@ -191,12 +191,26 @@ class ReportController extends Controller
         $paymentsReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->whereBetween('date', [$from, $to])->sum('amount_paid');
-        // Add shopkeeper payments
+        // Include soft-deleted shopkeepers in payments received calculation
+        $shopkeeperIds = \App\Models\Shopkeeper::withTrashed()->pluck('id');
         $paymentsReceivedViaShopkeepers = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
-            ->whereHas('shopkeeper.distributor', function($q) use ($companyId) { $q->where('company_id', $companyId); })
+            ->whereIn('shopkeeper_id', $shopkeeperIds)
             ->whereBetween('transaction_date', [$from, $to])
             ->sum('total_amount');
         $paymentsReceived = $paymentsReceivedViaSales + $paymentsReceivedViaPayments + $paymentsReceivedViaShopkeepers;
+
+        // Get all customer IDs with wholesale/distributor sales
+        $wholesaleCustomerIds = \App\Models\Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereIn('sale_type', ['wholesale', 'distributor'])
+            ->whereNotNull('customer_id')
+            ->pluck('customer_id')->unique();
+        // Payments received from customers (for wholesale/distributor sales)
+        $paymentsReceivedViaCustomerPayments = \App\Models\Payment::whereIn('customer_id', $wholesaleCustomerIds)
+            ->whereBetween('date', [$from, $to])
+            ->sum('amount_paid');
+        // Add to payments received
+        $paymentsReceived = $paymentsReceived + $paymentsReceivedViaCustomerPayments;
 
         // Total received via direct payments (for this company)
         $totalReceivedViaPayments = \App\Models\Payment::whereHas('customer', function($q) use ($companyId) {
@@ -207,11 +221,34 @@ class ReportController extends Controller
             ->whereBetween('created_at', [$from, $to])
             ->whereIn('sale_type', ['wholesale', 'distributor'])
             ->sum('amount_received');
-        // Pending balance (wholesale/distributor only)
+        // Include soft-deleted shopkeepers in pending balance calculation
+        $shopkeeperIds = \App\Models\Shopkeeper::withTrashed()->pluck('id');
         $pendingBalanceQuery = \App\Models\Sale::where('company_id', $companyId)
             ->whereBetween('created_at', [$from, $to])
-            ->whereIn('sale_type', ['wholesale', 'distributor']);
-        $pendingBalance = $pendingBalanceQuery->sum(DB::raw('total_amount - IFNULL(amount_received, 0)'));
+            ->whereIn('sale_type', ['wholesale', 'distributor'])
+            ->whereIn('shopkeeper_id', $shopkeeperIds);
+        $pendingBalanceSales = $pendingBalanceQuery->sum(\DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        // Subtract shopkeeper payments
+        $shopkeeperPayments = \App\Models\ShopkeeperTransaction::where('type', 'payment_made')
+            ->whereIn('shopkeeper_id', $shopkeeperIds)
+            ->whereBetween('transaction_date', [$from, $to])
+            ->sum('total_amount');
+        // Add pending and received for wholesale customers
+        $wholesaleCustomerSales = \App\Models\Sale::where('company_id', $companyId)
+            ->whereBetween('created_at', [$from, $to])
+            ->where('sale_type', 'wholesale')
+            ->whereNotNull('customer_id');
+        $pendingWholesaleCustomer = $wholesaleCustomerSales->sum(\DB::raw('total_amount - IFNULL(amount_received, 0)'));
+        $wholesaleCustomerIds = $wholesaleCustomerSales->pluck('customer_id')->unique();
+        $paymentsReceivedViaWholesaleCustomers = \App\Models\Payment::whereIn('customer_id', $wholesaleCustomerIds)
+            ->whereBetween('date', [$from, $to])
+            ->sum('amount_paid');
+        $pendingBalance = $pendingBalanceSales - $shopkeeperPayments + $pendingWholesaleCustomer - $paymentsReceivedViaWholesaleCustomers;
+
+        // Add opening outstanding to total sales and pending balance
+        $openingOutstanding = \App\Models\ShopkeeperTransaction::where('type', 'product_sold')->where('description', 'Opening Outstanding')->sum('total_amount');
+        $totalSale = $totalSale + $openingOutstanding;
+        $pendingBalance = $pendingBalance + $openingOutstanding;
 
         // Accounts Payable (PKR)
         $totalPurchasesPKR = \App\Models\Purchase::where('company_id', $companyId)

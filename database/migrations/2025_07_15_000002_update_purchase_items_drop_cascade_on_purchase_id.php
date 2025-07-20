@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::table('purchase_items', function (Blueprint $table) {
             $table->dropForeign(['purchase_id']);
-            $table->foreign('purchase_id')->references('id')->on('purchases'); // no cascade
+            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');
         });
     }
     public function down(): void
     {
         Schema::table('purchase_items', function (Blueprint $table) {
             $table->dropForeign(['purchase_id']);
-            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');
+            $table->foreign('purchase_id')->references('id')->on('purchases'); // no cascade
         });
     }
 }; 
