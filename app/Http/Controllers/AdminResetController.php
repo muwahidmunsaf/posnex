@@ -52,7 +52,8 @@ class AdminResetController extends Controller
             'external_purchases' => 'external_purchases',
             'external_sales' => 'external_sales',
             'activity_logs' => 'activity_logs',
-            'returns' => 'return_transactions',
+            'returns' => 'return_transactions', // fixed table name
+            'notes' => 'notes',
         ];
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -77,6 +78,7 @@ class AdminResetController extends Controller
                 'activity_logs',
                 'return_transactions', // fixed table name
                 'inventory',
+                'notes',
             ];
             $selectedTables = [];
             if (in_array('all', $selected)) {

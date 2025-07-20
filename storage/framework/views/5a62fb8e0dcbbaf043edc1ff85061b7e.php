@@ -1,19 +1,19 @@
-@extends('layouts.app')
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
                     <h3 class="mb-4 text-danger" style="font-weight:700;"><i class="bi bi-arrow-repeat me-2"></i> Reset Application Data</h3>
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-                    @if(session('error'))
-                        <div class="alert alert-danger">{{ session('error') }}</div>
-                    @endif
-                    <form method="POST" action="{{ route('admin.reset-data.post') }}" onsubmit="return confirm('Are you sure? This cannot be undone!')">
-                        @csrf
+                    <?php if(session('success')): ?>
+                        <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+                    <?php endif; ?>
+                    <?php if(session('error')): ?>
+                        <div class="alert alert-danger"><?php echo e(session('error')); ?></div>
+                    <?php endif; ?>
+                    <form method="POST" action="<?php echo e(route('admin.reset-data.post')); ?>" onsubmit="return confirm('Are you sure? This cannot be undone!')">
+                        <?php echo csrf_field(); ?>
                         <div class="mb-3">
                             <div class="form-check form-check-inline">
                                 <input type="checkbox" id="select-all" value="all" name="modules[]" class="form-check-input">
@@ -21,14 +21,14 @@
                             </div>
                         </div>
                         <div class="row g-2 mb-3">
-                            @foreach($modules as $key => $label)
+                            <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="col-md-4 col-6">
                                     <div class="form-check">
-                                        <input type="checkbox" class="form-check-input module-checkbox" name="modules[]" value="{{ $key }}" id="module-{{ $key }}">
-                                        <label class="form-check-label" for="module-{{ $key }}">{{ $label }}</label>
+                                        <input type="checkbox" class="form-check-input module-checkbox" name="modules[]" value="<?php echo e($key); ?>" id="module-<?php echo e($key); ?>">
+                                        <label class="form-check-label" for="module-<?php echo e($key); ?>"><?php echo e($label); ?></label>
                                     </div>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             <div class="col-md-4 col-6">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input module-checkbox" name="modules[]" value="notes" id="module-notes">
@@ -55,4 +55,5 @@ document.getElementById('select-all').onclick = function() {
     }
 };
 </script>
-@endsection 
+<?php $__env->stopSection(); ?> 
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\HP\Desktop\posnex\resources\views/admin/reset_data.blade.php ENDPATH**/ ?>
